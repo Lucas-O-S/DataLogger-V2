@@ -81,31 +81,7 @@ app.layout = html.Div([
     State('luminosity-data-store', 'data')
 )
 def update_data_store(n, stored_data):
-    # Get luminosity data
-    data_luminosity = get_data(lastN,"luminosity")
-
-    if data_luminosity:
-        # Extract values and timestamps
-        luminosity_values = [float(entry['attrValue']) for entry in data_luminosity]  # Ensure values are floats
-        timestamps = [entry['recvTime'] for entry in data_luminosity]
-
-        # Calculate the average luminosity for the current interval
-        average_luminosity = sum(luminosity_values) / len(luminosity_values)
-
-        # Convert timestamps to Lisbon time
-        timestamps = convert_to_sao_paulo_time(timestamps)
-
-        # Append the new average and the latest timestamp to stored data
-        stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
-        stored_data['luminosity_values'].append(average_luminosity)  # Store the average luminosity
-
-        # Calculate total average luminosity
-        total_luminosity = sum(stored_data['luminosity_values'])
-        total_count = len(stored_data['luminosity_values'])
-        stored_data['total_average_luminosity'] = total_luminosity / total_count if total_count > 0 else 0
-
-        return stored_data
-
+    stored_data = generic_update_data_store(n,stored_data,"luminosity")
     return stored_data
 
 @app.callback(
@@ -155,31 +131,7 @@ def update_graph(stored_data):
     State('temperature-data-store', 'data')
 )
 def update_data_store(n, stored_data):
-    # Get luminosity data
-    data_temperature = get_data(lastN,"temperature")
-
-    if data_temperature:
-        # Extract values and timestamps
-        temperature_values = [float(entry['attrValue']) for entry in data_temperature]  # Ensure values are floats
-        timestamps = [entry['recvTime'] for entry in data_temperature]
-
-        # Calculate the average luminosity for the current interval
-        average_temperature = sum(temperature_values) / len(temperature_values)
-
-        # Convert timestamps to Lisbon time
-        timestamps = convert_to_sao_paulo_time(timestamps)
-
-        # Append the new average and the latest timestamp to stored data
-        stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
-        stored_data['temperature_values'].append(average_temperature)  # Store the average luminosity
-
-        # Calculate total average luminosity
-        total_temperature = sum(stored_data['temperature_values'])
-        total_count = len(stored_data['temperature_values'])
-        stored_data['total_average_temperature'] = total_temperature / total_count if total_count > 0 else 0
-
-        return stored_data
-
+    stored_data = generic_update_data_store(n,stored_data,"temperature")
     return stored_data
 
 @app.callback(
@@ -221,6 +173,34 @@ def update_graph(stored_data):
         return fig_temperature
 
     return {}
+
+def generic_update_data_store(n, stored_data,dataType):
+    # Get luminosity data
+    data = get_data(lastN, dataType)
+
+    if data:
+        # Extract values and timestamps
+        data_values = [float(entry['attrValue']) for entry in data]  # Ensure values are floats
+        timestamps = [entry['recvTime'] for entry in data]
+
+        # Calculate the average luminosity for the current interval
+        average_data = sum(data_values) / len(data_values)
+
+        # Convert timestamps to Lisbon time
+        timestamps = convert_to_sao_paulo_time(timestamps)
+
+        # Append the new average and the latest timestamp to stored data
+        stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
+        stored_data[f'{dataType}_values'].append(average_data)  # Store the average luminosity
+
+        # Calculate total average luminosity
+        total_data = sum(stored_data[f'{dataType}_values'])
+        total_count = len(stored_data[f'{dataType}_values'])
+        stored_data[f'total_average_{dataType}'] = total_data / total_count if total_count > 0 else 0
+
+        return stored_data
+    return stored_data
+
 
  
 if __name__ == '__main__':
