@@ -77,102 +77,35 @@ app.layout = html.Div([
 
 @app.callback(
     Output('luminosity-data-store', 'data'),
+    Output('temperature-data-store', 'data'),
     Input('interval-component', 'n_intervals'),
-    State('luminosity-data-store', 'data')
+    State('luminosity-data-store', 'data'),
+    State('temperature-data-store', 'data')
+
 )
-def update_data_store(n, stored_data):
-    stored_data = generic_update_data_store(n,stored_data,"luminosity")
-    return stored_data
+def update_data_store(n, luminosity_data, temperature_data):
+    luminosity_data = generic_update_data_store(n,luminosity_data,"luminosity")
+    temperature_data = generic_update_data_store(n,temperature_data,"temperature")
+
+    return luminosity_data, temperature_data
 
 @app.callback(
     Output('luminosity-graph', 'figure'),
     Input('luminosity-data-store', 'data')
 )
 def update_graph(stored_data):
-    if stored_data['timestamps'] and stored_data['luminosity_values']:
-        # Create traces for the plot
-        trace_average = go.Scatter(
-            x=stored_data['timestamps'],
-            y=stored_data['luminosity_values'],
-            mode='lines+markers',
-            name='Luminosidade',
-            line=dict(color='orange')
-        )
+    fig_luminosity = generic_update_graph(stored_data,"luminosity","Luminosidade","orange")
+    return fig_luminosity
 
-        # Create a trace for the total average
-        total_average_luminosity = stored_data['total_average_luminosity']
-        trace_total_average = go.Scatter(
-            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
-            y=[total_average_luminosity, total_average_luminosity],
-            mode='lines',
-            name='Media da Luminosidade',
-            line=dict(color='blue', dash='dash')
-        )
-
-        # Create figure
-        fig_luminosity = go.Figure(data=[trace_average, trace_total_average])
-
-        # Update layout
-        fig_luminosity.update_layout(
-            title='Luminosidade',
-            xaxis_title='Timestamp',
-            yaxis_title='Luminosity',
-            hovermode='closest'
-        )
-
-        return fig_luminosity
-
-    return {}
-
-
-@app.callback(
-    Output('temperature-data-store', 'data'),
-    Input('interval-component', 'n_intervals'),
-    State('temperature-data-store', 'data')
-)
-def update_data_store(n, stored_data):
-    stored_data = generic_update_data_store(n,stored_data,"temperature")
-    return stored_data
 
 @app.callback(
     Output('temperature-graph', 'figure'),
     Input('temperature-data-store', 'data')
 )
 def update_graph(stored_data):
-    if stored_data['timestamps'] and stored_data['temperature_values']:
-        # Create traces for the plot
-        trace_average = go.Scatter(
-            x=stored_data['timestamps'],
-            y=stored_data['temperature_values'],
-            mode='lines+markers',
-            name='Temperatura',
-            line=dict(color='red')
-        )
+    fig_temperature = generic_update_graph(stored_data,"temperature","Temperatura","red")
+    return fig_temperature
 
-        # Create a trace for the total average
-        total_average_temperature = stored_data['total_average_temperature']
-        trace_total_average = go.Scatter(
-            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
-            y=[total_average_temperature, total_average_temperature],
-            mode='lines',
-            name='Media da Temperatura',
-            line=dict(color='blue', dash='dash')
-        )
-
-        # Create figure
-        fig_temperature = go.Figure(data=[trace_average, trace_total_average])
-
-        # Update layout
-        fig_temperature.update_layout(
-            title='Temperatura',
-            xaxis_title='Timestamp',
-            yaxis_title='temperature',
-            hovermode='closest'
-        )
-
-        return fig_temperature
-
-    return {}
 
 def generic_update_data_store(n, stored_data,dataType):
     # Get luminosity data
@@ -201,7 +134,42 @@ def generic_update_data_store(n, stored_data,dataType):
         return stored_data
     return stored_data
 
+def generic_update_graph(stored_data, data_type,name, data_color):
+    if stored_data['timestamps'] and stored_data[f'{data_type}_values']:
+        # Create traces for the plot
+        trace_average = go.Scatter(
+            x=stored_data['timestamps'],
+            y=stored_data[f'{data_type}_values'],
+            mode='lines+markers',
+            name=f'{name}',
+            line=dict(color=data_color)
+        )
 
- 
+        # Create a trace for the total average
+        total_average = stored_data[f'total_average_{data_type}']
+        trace_total_average = go.Scatter(
+            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
+            y=[total_average, total_average],
+            mode='lines',
+            name=f'Media da {name}',
+            line=dict(color='blue', dash='dash')
+        )
+
+        # Create figure
+        fig_data = go.Figure(data=[trace_average, trace_total_average])
+
+        # Update layout
+        fig_data.update_layout(
+            title=f'{name}',
+            xaxis_title='Timestamp',
+            yaxis_title=f'{data_type}',
+            hovermode='closest'
+        )
+
+        return fig_data
+
+    return {} 
 if __name__ == '__main__':
     app.run_server(debug=True, host=DASH_HOST, port=8050)
+    
+
