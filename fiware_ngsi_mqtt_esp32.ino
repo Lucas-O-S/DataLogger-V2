@@ -10,16 +10,18 @@
 //Autor Rev3: Fábio Henrique Cabrini
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <DHT.h>
 
 // Configurações - variáveis editáveis
 const char* default_SSID = "HORIZON"; // Nome da rede Wi-Fi
-const char* default_PASSWORD = "123456"; // Senha da rede Wi-Fi
+const char* default_PASSWORD = "1234567890"; // Senha da rede Wi-Fi
 const char* default_BROKER_MQTT = "4.228.64.5"; // IP do Broker MQTT
-const int default_BROKER_PORT = 1883; // Porta do Broker MQTT
+const int default_BROKER_PORT = 1883; // Porta do Broker MQTT - **não mudar**
 const char* default_TOPICO_SUBSCRIBE = "/TEF/lamp05x/cmd"; // Tópico MQTT de escuta
 const char* default_TOPICO_PUBLISH_1 = "/TEF/lamp05x/attrs"; // Tópico MQTT de envio de informações para Broker
 const char* default_TOPICO_PUBLISH_2 = "/TEF/lamp05x/attrs/l"; // Tópico MQTT de envio de informações para Broker
-const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp05x/attrs/t";
+const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp05x/attrs/t"; // Envio da temperatura
+const char* default_TOPICO_PUBLISH_4 = "/TEF/lamp05x/attrs/h"; // Envio da umidade
 const char* default_ID_MQTT = "fiware_05x"; // ID MQTT
 const int default_D4 = 2; // Pino do LED onboard
 // Declaração da variável para o prefixo do tópico
@@ -34,8 +36,12 @@ char* TOPICO_SUBSCRIBE = const_cast<char*>(default_TOPICO_SUBSCRIBE);
 char* TOPICO_PUBLISH_1 = const_cast<char*>(default_TOPICO_PUBLISH_1);
 char* TOPICO_PUBLISH_2 = const_cast<char*>(default_TOPICO_PUBLISH_2);
 char* TOPICO_PUBLISH_3 = const_cast<char*>(default_TOPICO_PUBLISH_3);
+char* TOPICO_PUBLISH_4 = const_cast<char*>(default_TOPICO_PUBLISH_4);
 char* ID_MQTT = const_cast<char*>(default_ID_MQTT);
 int D4 = default_D4;
+#define DHTPIN 15 
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
 
 WiFiClient espClient;
 PubSubClient MQTT(espClient);
@@ -60,11 +66,15 @@ void initMQTT() {
 }
 
 void setup() {
+    dht.begin();
     InitOutput();
     initSerial();
     initWiFi();
     initMQTT();
-    delay(5000);
+    //dht.begin();
+    /*pinMode(35, INPUT);
+    pinMode(34, INPUT);*/
+    delay(5000); 
     MQTT.publish(TOPICO_PUBLISH_1, "s|on");
 }
 
@@ -73,6 +83,7 @@ void loop() {
     EnviaEstadoOutputMQTT();
     handleLuminosity();
     handleTemperature();
+    handleHumidity();
     MQTT.loop();
 }
 
@@ -182,4 +193,12 @@ void handleTemperature() {
     Serial.print("Valor da Temperatura: ");
     Serial.println(mensagem.c_str());
     MQTT.publish(TOPICO_PUBLISH_3, mensagem.c_str());
+}
+
+void handleHumidity() {
+  int humidity = dht.readHumidity();
+  String mensagem = String(humidity);
+  Serial.print("Valor da Umidade: ");
+  Serial.println(mensagem.c_str());
+  MQTT.publish(TOPICO_PUBLISH_4, mensagem.c_str());
 }
