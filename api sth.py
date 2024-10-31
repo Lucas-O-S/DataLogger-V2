@@ -138,7 +138,7 @@ app.layout = html.Div([
 @app.callback(
     Output('luminosity-data-store', 'data'),
     Output('temperature-data-store', 'data'),
-    Output('humidity-data-store', 'data')
+    Output('humidity-data-store', 'data'),
     
     #add one input for humidity
     Input('interval-component', 'n_intervals'),
@@ -146,7 +146,7 @@ app.layout = html.Div([
     State('temperature-data-store', 'data'),
     State('humidity-data-store', 'data')
 )
-def update_data_store(n, luminosity_data, temperature_data):
+def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     global erroMaxTemp, erroMinTemp, valorDentroLimiteTemp
     global erroMaxLum, erroMinLum, valorDentroLimiteLum
     global erroMaxUmi, erroMinUmi, valorDentroLimiteUmi
@@ -191,7 +191,7 @@ def update_data_store(n, luminosity_data, temperature_data):
 @app.callback(
     Output('luminosity-graph', 'figure'),
     Output('temperature-graph', 'figure'),
-    Output('humidity-data-store', 'data')
+    Output('humidity-graph', 'figure'),
 
     Input('luminosity-data-store', 'data'),
     Input('temperature-data-store', 'data'),
