@@ -7,13 +7,14 @@ from datetime import datetime
 import pytz
 import plotly.express as px
 import pandas as pd
+import json
 
  
 # Constants for IP and port
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "05x"
+lamp = "06x"
 
 #variaveis 
 triggerMinLum = 0
@@ -36,6 +37,11 @@ erroTotalUmi = 0
 erroMinUmi = 0
 erroMaxUmi = 0
 valorDentroLimiteUmi = 0
+
+ErroLuz = False
+ErroTemp = False
+ErroUmi = False
+
  #################################################################################
  #Functions before start
  
@@ -61,12 +67,28 @@ def get_data(lastN,dataType):
         return []
 
 def turn_light():
-    url = f"http://{url}:1026/v2/entities/urn:ngsi-ld:Lamp:{lamp}/attrs"
+    global ErroLuz, ErroTemp, ErroUmi
+
+    url = f"http://{IP_ADDRESS}:1026/v2/entities/urn:ngsi-ld:Lamp:{lamp}/attrs"
     headers = {
         'fiware-service': 'smart',
-        'fiware-servicepath': '/'
+        'fiware-servicepath': '/',
+        'Content-Type': 'application/json'  # Adicione este cabeçalho
     }
-    requests.patch(url, headers=headers)
+    
+    if(ErroLuz == False and ErroUmi == False and ErroTemp == False ):
+        estado = "off"
+    else:
+        estado = "on"
+    
+    # Defina o corpo da requisição
+    payload = {
+        f"{estado}": {
+            "type": "command",
+            "value": ""
+        }
+    }
+    requests.patch(url, headers=headers, data=json.dumps(payload))
 
  
  # Function to convert UTC timestamps to São Paulo time
@@ -155,6 +177,7 @@ def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     global erroMaxTemp, erroMinTemp, valorDentroLimiteTemp
     global erroMaxLum, erroMinLum, valorDentroLimiteLum
     global erroMaxUmi, erroMinUmi, valorDentroLimiteUmi
+    global ErroLuz, ErroTemp, ErroUmi
 
     luminosity_data = generic_update_data_store(n,luminosity_data,"luminosity")
         
@@ -165,30 +188,39 @@ def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     if temperature_data:
         
         if temperature_data["temperature_values"][-1] > triggerMaxTemp  :
+            ErroTemp = True
             erroMaxTemp+=1
         elif temperature_data["temperature_values"][-1] < triggerMinTemp  :
+            ErroTemp = True
             erroMinTemp+=1
         else:
+            ErroTemp = False
             valorDentroLimiteTemp+=1
             
     if luminosity_data:
         
         if luminosity_data["luminosity_values"][-1] > triggerMaxLum  :
+            ErroLuz = True
             erroMaxLum+=1
         elif luminosity_data["luminosity_values"][-1] < triggerMinLum  :
+            ErroLuz = True
             erroMinLum+=1
         else:
+            ErroLuz = False
             valorDentroLimiteLum+=1
             
     if humidity_data:
         
         if humidity_data["humidity_values"][-1] > triggerMaxUmi  :
+            ErroUmi = True
             erroMaxUmi+=1
         elif humidity_data["humidity_values"][-1] < triggerMinUmi  :
+            ErroUmi = True
             erroMinUmi+=1
         else:
+            ErroUmi = False
             valorDentroLimiteUmi+=1
-    
+    turn_light()
     return luminosity_data, temperature_data, humidity_data
 
 
