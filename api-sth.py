@@ -23,13 +23,19 @@ erroMinLum = 0
 erroMaxLum = 0
 valorDentroLimiteLum = 0
 
-triggerMinTemp = 0
-triggerMaxTemp = 30
+triggerMinTemp = 15
+triggerMaxTemp = 25
 erroTotalTemp=0
 erroMinTemp = 0
 erroMaxTemp = 0
 valorDentroLimiteTemp = 0
- 
+
+triggerMinUmi = 30
+triggerMaxUmi = 50
+erroTotalUmi = 0
+erroMinUmi = 0
+erroMaxUmi = 0
+valorDentroLimiteUmi = 0
  #################################################################################
  #Functions before start
  
@@ -91,17 +97,15 @@ app.layout = html.Div([
     # Store to hold historical data
     dcc.Store(id='luminosity-data-store', data={'timestamps': [], 'luminosity_values': []}),
     dcc.Store(id='temperature-data-store', data={'timestamps': [], 'temperature_values': []}),
-    dcc.Store(id='humidity-data-store', data={'timestamps': [], 'humidity': []}),
+    dcc.Store(id='humidity-data-store', data={'timestamps': [], 'humidity_values': []}),
     
     html.H1('ESP 32 Data Viewer'),
     
     #Div for luminosity dashboard
     html.Div([
         html.H2('Dados de Luminosidade'),
-
         dcc.Graph(id='luminosity-graph'),
         dcc.Graph(id='luminosity-ErrorData-graph')
-
 
     ]),
     
@@ -110,16 +114,14 @@ app.layout = html.Div([
         html.H2('Dados de Temperatura'),
         dcc.Graph(id='temperature-graph'),
         dcc.Graph(id='temperature-ErrorData-graph')
-
     ]),
     
     #Div for humidity dashboard
     html.Div([
         html.H2('Dados de Umidade'),
         dcc.Graph(id='humidity-graph'),
-
+        dcc.Graph(id='humidity-ErrorData-graph')
     ]),
-    
 
     #Update site
     dcc.Interval(
@@ -136,19 +138,24 @@ app.layout = html.Div([
 @app.callback(
     Output('luminosity-data-store', 'data'),
     Output('temperature-data-store', 'data'),
-    #add one output for humidity
+    Output('humidity-data-store', 'data'),
+    
+    #add one input for humidity
     Input('interval-component', 'n_intervals'),
     State('luminosity-data-store', 'data'),
-    State('temperature-data-store', 'data')
-    #add one input for humidity
+    State('temperature-data-store', 'data'),
+    State('humidity-data-store', 'data')
 )
-def update_data_store(n, luminosity_data, temperature_data):
+def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     global erroMaxTemp, erroMinTemp, valorDentroLimiteTemp
     global erroMaxLum, erroMinLum, valorDentroLimiteLum
+    global erroMaxUmi, erroMinUmi, valorDentroLimiteUmi
 
     luminosity_data = generic_update_data_store(n,luminosity_data,"luminosity")
         
     temperature_data = generic_update_data_store(n,temperature_data,"temperature")
+    
+    humidity_data = generic_update_data_store(n,humidity_data,"humidity")
     
     if temperature_data:
         
@@ -167,30 +174,41 @@ def update_data_store(n, luminosity_data, temperature_data):
             erroMinLum+=1
         else:
             valorDentroLimiteLum+=1
+            
+    if humidity_data:
+        
+        if humidity_data["humidity_values"][-1] > triggerMaxUmi  :
+            erroMaxUmi+=1
+        elif humidity_data["humidity_values"][-1] < triggerMinUmi  :
+            erroMinUmi+=1
+        else:
+            valorDentroLimiteUmi+=1
     
-    return luminosity_data, temperature_data
+    return luminosity_data, temperature_data, humidity_data
 
 
 #update line graphs
 @app.callback(
     Output('luminosity-graph', 'figure'),
     Output('temperature-graph', 'figure'),
-    #add one output for umidity
+    Output('humidity-graph', 'figure'),
+
     Input('luminosity-data-store', 'data'),
-    Input('temperature-data-store', 'data')
-    #add one input for temperature
+    Input('temperature-data-store', 'data'),
+    Input('humidity-data-store', 'data')
 )
-def update_graph(luminosity_data, temperature_data):
+def update_graph(luminosity_data, temperature_data, humidity_data):
     fig_luminosity = generic_update_graph(luminosity_data,"luminosity","Luminosidade","orange")
     fig_temperature = generic_update_graph(temperature_data,"temperature","Temperatura","red")
-    #add umidity things
+    fig_humidity = generic_update_graph(humidity_data,"humidity","Umidade","yellow")
     
-    return fig_luminosity, fig_temperature
+    return fig_luminosity, fig_temperature, fig_humidity
 
 
 @app.callback(
     Output('luminosity-ErrorData-graph','figure'),
     Output('temperature-ErrorData-graph','figure'),
+    Output('humidity-ErrorData-graph','figure'),
 
     Input('temperature-data-store', 'data')  # Ou outra entrada que faça sentido
 
@@ -198,7 +216,8 @@ def update_graph(luminosity_data, temperature_data):
 def updateErroGraph(temperatureData):
         luminosity_histogram = generic_updateErroGraph([valorDentroLimiteLum,erroMaxLum,erroMinLum])
         temperature_histogram = generic_updateErroGraph([valorDentroLimiteTemp,erroMaxTemp,erroMinTemp])
-        return luminosity_histogram,temperature_histogram
+        humidity_histogram = generic_updateErroGraph([valorDentroLimiteUmi,erroMaxUmi,erroMinUmi])
+        return luminosity_histogram,temperature_histogram,humidity_histogram
 
 
 #############################################################################################################
@@ -299,5 +318,3 @@ def generic_updateErroGraph(quantidades):
 #Run server
 if __name__ == '__main__':
     app.run_server(debug=True, host=DASH_HOST, port=8050)
-    
-
