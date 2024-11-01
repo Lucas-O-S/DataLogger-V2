@@ -105,7 +105,8 @@ app.layout = html.Div([
     html.Div([
         html.H2('Dados de Luminosidade'),
         dcc.Graph(id='luminosity-graph'),
-        dcc.Graph(id='luminosity-ErrorData-graph')
+        dcc.Graph(id='luminosity-ErrorData-graph'),
+        dcc.Graph(id='luminosity-Pie-graph')
 
     ]),
     
@@ -113,14 +114,18 @@ app.layout = html.Div([
     html.Div([
         html.H2('Dados de Temperatura'),
         dcc.Graph(id='temperature-graph'),
-        dcc.Graph(id='temperature-ErrorData-graph')
+        dcc.Graph(id='temperature-ErrorData-graph'),
+        dcc.Graph(id='temperature-Pie-graph')
+
     ]),
     
     #Div for humidity dashboard
     html.Div([
         html.H2('Dados de Umidade'),
         dcc.Graph(id='humidity-graph'),
-        dcc.Graph(id='humidity-ErrorData-graph')
+        dcc.Graph(id='humidity-ErrorData-graph'),
+        dcc.Graph(id='humidity-Pie-graph')
+
     ]),
 
     #Update site
@@ -205,20 +210,36 @@ def update_graph(luminosity_data, temperature_data, humidity_data):
     return fig_luminosity, fig_temperature, fig_humidity
 
 
+#update bar graph
 @app.callback(
     Output('luminosity-ErrorData-graph','figure'),
     Output('temperature-ErrorData-graph','figure'),
     Output('humidity-ErrorData-graph','figure'),
 
-    Input('temperature-data-store', 'data')  # Ou outra entrada que faça sentido
+    Input('interval-component', 'n_intervals'),
 
 )
-def updateErroGraph(temperatureData):
+def updateErroGraph(n):
         luminosity_histogram = generic_updateErroGraph([valorDentroLimiteLum,erroMaxLum,erroMinLum])
         temperature_histogram = generic_updateErroGraph([valorDentroLimiteTemp,erroMaxTemp,erroMinTemp])
         humidity_histogram = generic_updateErroGraph([valorDentroLimiteUmi,erroMaxUmi,erroMinUmi])
         return luminosity_histogram,temperature_histogram,humidity_histogram
 
+
+@app.callback(
+    Output('luminosity-Pie-graph', 'figure'),
+    Output('temperature-Pie-graph', 'figure'),
+    Output('humidity-Pie-graph', 'figure'),
+
+    Input('interval-component', 'n_intervals'),
+)
+def UpdatePieGraph(n):
+    luminosity_pie = generic_UpdatePieGraph([valorDentroLimiteLum,erroMaxLum,erroMinLum])
+    temperature_pie = generic_UpdatePieGraph([valorDentroLimiteTemp,erroMaxTemp,erroMinTemp])
+    humidity_pie = generic_UpdatePieGraph([valorDentroLimiteUmi,erroMaxUmi,erroMinUmi])
+
+
+    return luminosity_pie,temperature_pie, humidity_pie
 
 #############################################################################################################
 #functions
@@ -304,13 +325,29 @@ def generic_updateErroGraph(quantidades):
 
         fig_histogram.update_layout(
             title='Quantidade de valores dentro e fora do limite',
-            xaxis_title='Categoria de Temperatura',
             yaxis_title='Quantidade',
-            yaxis=dict(title='Quantidade', autorange=True)  # Autoresiza o range do eixo Y
+            yaxis=dict(title='Quantidade', autorange=True)  
         )
 
         return fig_histogram
 
+def generic_UpdatePieGraph(valores):
+    # Cria os dados com as categorias e valores desejados
+    ErroTotal = valores[1] + valores[2]
+    Total = valores[0] + ErroTotal
+    if Total == 0: 
+        Total = 1
+    data = {
+        "names": ["Dentro do Limite", "Fora do limite"],
+        "values": [ valores[0]*100/Total, ErroTotal*100/Total]
+    }
+    
+    # Converte o dicionário em um DataFrame
+    df = pd.DataFrame(data)
+    
+    # Gera o gráfico de pizza
+    fig = px.pie(df, values="values", names="names", hole=.3)
+    return fig
 
 
     
