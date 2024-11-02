@@ -1,6 +1,7 @@
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
+import dash_bootstrap_components as dbc
 import plotly.graph_objs as go
 import requests
 from datetime import datetime
@@ -112,7 +113,7 @@ lastN = 10  # Get 10 most recent points at each interval
  #############################################################################################################
  #Layout data
  
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
  
 app.layout = html.Div([
     
@@ -122,42 +123,49 @@ app.layout = html.Div([
     dcc.Store(id='humidity-data-store', data={'timestamps': [], 'humidity_values': []}),
     
     html.H1('ESP 32 Data Viewer'),
-    
-    #Div for luminosity dashboard
     html.Div([
-        html.H2('Dados de Luminosidade'),
-        dcc.Graph(id='luminosity-graph'),
-        dcc.Graph(id='luminosity-ErrorData-graph'),
-        dcc.Graph(id='luminosity-Pie-graph')
+            html.H2('Dados de Luminosidade'),
+            dcc.Graph(id='luminosity-graph'),
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='luminosity-ErrorData-graph'), width=6),
+                dbc.Col(dcc.Graph(id='luminosity-Pie-graph'), width=6)
+            ])
+        ]),
 
-    ]),
-    
-    #Div for temperature dashboard
-    html.Div([
-        html.H2('Dados de Temperatura'),
-        dcc.Graph(id='temperature-graph'),
-        dcc.Graph(id='temperature-ErrorData-graph'),
-        dcc.Graph(id='temperature-Pie-graph')
+        
+        #Div for temperature dashboard
+        html.Div([
+            html.H2('Dados de Temperatura'),
+            dcc.Graph(id='temperature-graph'),
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='temperature-ErrorData-graph'),width=6 ),
+                dbc.Col(dcc.Graph(id='temperature-Pie-graph'),width=6)
+            ])
+            
+        ]),
+        
+        #Div for humidity dashboard
+        html.Div([
+            html.H2('Dados de Umidade'),
+            dcc.Graph(id='humidity-graph'),
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='humidity-ErrorData-graph'),width=6 ),
+                 dbc.Col(dcc.Graph(id='humidity-Pie-graph'),width=6)
 
-    ]),
-    
-    #Div for humidity dashboard
-    html.Div([
-        html.H2('Dados de Umidade'),
-        dcc.Graph(id='humidity-graph'),
-        dcc.Graph(id='humidity-ErrorData-graph'),
-        dcc.Graph(id='humidity-Pie-graph')
+            ])
 
-    ]),
+        ]),
 
-    #Update site
-    dcc.Interval(
-        id='interval-component',
-        interval=10*1000,  # in milliseconds (10 seconds)
-        n_intervals=0
-    )
-    
+        #Update site
+        dcc.Interval(
+            id='interval-component',
+            interval=10*1000,  # in milliseconds (10 seconds)
+            n_intervals=0
+        )
 ])
+
+    
+
 
 ##########################################################################################################
 #Callbacks
