@@ -9,28 +9,13 @@ import pytz
 import plotly.express as px
 import pandas as pd
 import json
-from pymongo import MongoClient
 
-##############################################################################
-
-client = MongoClient("mongodb://Grupo03:Ec05082220019@4.228.64.5:27017/authSource=ad")  # Conexão ao MongoDB, utilizando porta 27017
-db = client["nome_do_banco"] #Necessário descobrir o banco de dados
-colecao = db["nome_da_colecao"] #Necessário descobrir o nome da coleção
-
-print(client.list_database_names())  # Lista todos os bancos de dados
-
-# Buscando dados
-dados = colecao.find()
-for documento in dados:
-    print(documento)
-
-##############################################################################
  
 # Constants for IP and port
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "05x"
+lamp = "06x"
 
 #variaveis 
 triggerMinLum = 0
@@ -63,30 +48,24 @@ ErroUmi = False
  
 # Function to get data from the API
 def get_data(lastN,dataType):
-    #call api date
-        url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{lamp}/attributes/{dataType}?lastN={lastN}"
-        headers = {
-            'fiware-service': 'smart',
-            'fiware-servicepath': '/'
-        }
-     try:
-        response = requests.get(url, headers=headers, timeout=10)  # Define um tempo limite (10 segundos)
-        if response.status_code == 200:
-            data = response.json()
-            try:
-                values = data['contextResponses'][0]['contextElement']['attributes'][0]['values']
-                return values
-            except KeyError as e:
-                print(f"Key error: {e}")
-                return []
-        else:
-            print(f"Error accessing {url}: {response.status_code}")
+    #call api data
+    url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{lamp}/attributes/{dataType}?lastN={lastN}"
+    headers = {
+        'fiware-service': 'smart',
+        'fiware-servicepath': '/'
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        try:
+            values = data['contextResponses'][0]['contextElement']['attributes'][0]['values']
+            return values
+        except KeyError as e:
+            print(f"Key error: {e}")
             return []
-         
-   except requests.exceptions.RequestException as e:
-        # Captura qualquer erro na conexão ou timeout
-        print(f"Erro: Não foi possível conectar à API FIWARE. Detalhes: {e}")
-        return {"timestamps": [], "values": []}
+    else:
+        print(f"Error accessing {url}: {response.status_code}")
+        return []
 
 def turn_light():
     global ErroLuz, ErroTemp, ErroUmi
