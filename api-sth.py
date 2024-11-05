@@ -15,7 +15,7 @@ import json
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "06x"
+lamp = "07x"
 
 #variaveis 
 triggerMinLum = 0
@@ -303,11 +303,6 @@ def generic_update_data_store(n, stored_data,dataType):
         # Append the new average and the latest timestamp to stored data
         stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
         stored_data[f'{dataType}_values'].append(average_data)  # Store the average luminosity
-
-        # Calculate total average luminosity
-        total_data = sum(stored_data[f'{dataType}_values'])
-        total_count = len(stored_data[f'{dataType}_values'])
-        stored_data[f'total_average_{dataType}'] = total_data / total_count if total_count > 0 else 0
 
         return stored_data
     return stored_data
