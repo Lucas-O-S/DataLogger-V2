@@ -15,7 +15,7 @@ import json
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "06x"
+lamp = "08x"
 
 # variaveis
 triggerMinLum = 0
@@ -43,19 +43,24 @@ ErroLuz = False
 ErroTemp = False
 ErroUmi = False
 
-#################################################################################
-# Functions before start
+# Set lastN value
+lastN = 1  # Get 10 most recent points at each interval
+ 
 
+ #################################################################################
+ #Functions before start
+ 
 # Function to get data from the API
+def get_data(lastN,dataType):
 
-
-def get_data(lastN, dataType):
-    # call api data
+    
+    #call api data
     url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{lamp}/attributes/{dataType}?lastN={lastN}"
     headers = {
         'fiware-service': 'smart',
         'fiware-servicepath': '/'
     }
+    lastN = 1
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -112,13 +117,6 @@ def convert_to_sao_paulo_time(timestamps):
                 timestamp, '%Y-%m-%d %H:%M:%S')).astimezone(lisbon)
         converted_timestamps.append(converted_time)
     return converted_timestamps
-
-
-# Set lastN value
-lastN = 10  # Get 10 most recent points at each interval
-
-#############################################################################################################
-# Layout data
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -319,56 +317,49 @@ def generic_update_data_store(n, stored_data, dataType):
                        for entry in data]  # Ensure values are floats
         timestamps = [entry['recvTime'] for entry in data]
 
-        # Calculate the average luminosity for the current interval
-        average_data = sum(data_values) / len(data_values)
+
 
         # Convert timestamps to Lisbon time
         timestamps = convert_to_sao_paulo_time(timestamps)
 
         # Append the new average and the latest timestamp to stored data
-        # Store only the latest timestamp
-        stored_data['timestamps'].append(timestamps[-1])
-        stored_data[f'{dataType}_values'].append(
-            average_data)  # Store the average luminosity
 
-        # Calculate total average luminosity
-        total_data = sum(stored_data[f'{dataType}_values'])
-        total_count = len(stored_data[f'{dataType}_values'])
-        stored_data[f'total_average_{dataType}'] = total_data / \
-            total_count if total_count > 0 else 0
+        stored_data['timestamps'].extend(timestamps) # Store only the latest timestamp
+        stored_data[f'{dataType}_values'].extend(data_values)  # Store the average luminosity
 
         return stored_data
     return stored_data
 
-# update the graph for others data
-
-
+#update the graph for others data
 def generic_update_graph(stored_data, data_type, name, data_color):
-
     if stored_data['timestamps'] and stored_data[f'{data_type}_values']:
-        # Create traces for the plot
+        mean = sum(stored_data[f"{data_type}_values"]) / len(stored_data[f'{data_type}_values'])
+
+        # Inserir um valor None entre o último e o primeiro ponto
+        x_data = stored_data['timestamps'] + [None]
+        y_data = stored_data[f'{data_type}_values'] + [None]
+
+        # Cria a trace para o gráfico
         trace_average = go.Scatter(
-            x=stored_data['timestamps'],
-            y=stored_data[f'{data_type}_values'],
+            x=x_data,
+            y=y_data,
             mode='lines+markers',
             name=f'{name}',
             line=dict(color=data_color)
         )
-
-        # Create a trace for the total average
-        total_average = stored_data[f'total_average_{data_type}']
-        trace_total_average = go.Scatter(
+        
+        trace_mean = go.Scatter(
             x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
-            y=[total_average, total_average],
+            y=[mean, mean],
             mode='lines',
-            name=f'Media da {name}',
+            name='Mean',
             line=dict(color='blue', dash='dash')
         )
 
-        # Create figure
-        fig_data = go.Figure(data=[trace_average, trace_total_average])
+        # Cria a figura
+        fig_data = go.Figure(data=[trace_average, trace_mean])
 
-        # Update layout
+        # Atualiza o layout
         fig_data.update_layout(
             title=f'{name}',
             xaxis_title='Timestamp',

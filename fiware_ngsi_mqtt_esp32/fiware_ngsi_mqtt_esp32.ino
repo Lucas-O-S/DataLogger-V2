@@ -11,22 +11,21 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <DHT.h>
-const char lamp = "06x"
 
 // Configurações - variáveis editáveis
 const char* default_SSID = "HORIZON"; // Nome da rede Wi-Fi
 const char* default_PASSWORD = "1234567890"; // Senha da rede Wi-Fi
 const char* default_BROKER_MQTT = "4.228.64.5"; // IP do Broker MQTT
 const int default_BROKER_PORT = 1883; // Porta do Broker MQTT - **não mudar**
-const char* default_TOPICO_SUBSCRIBE = "/TEF/lamp06x/cmd"; // Tópico MQTT de escuta
-const char* default_TOPICO_PUBLISH_1 = "/TEF/lamp06x/attrs"; // Tópico MQTT de envio de informações para Broker
-const char* default_TOPICO_PUBLISH_2 = "/TEF/lamp06x/attrs/l"; // Tópico MQTT de envio de informações para Broker
-const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp06x/attrs/t"; // Envio da temperatura
-const char* default_TOPICO_PUBLISH_4 = "/TEF/lamp06x/attrs/h"; // Envio da umidade
-const char* default_ID_MQTT = "fiware_06x"; // ID MQTT
+const char* default_TOPICO_SUBSCRIBE = "/TEF/lamp07x/cmd"; // Tópico MQTT de escuta
+const char* default_TOPICO_PUBLISH_1 = "/TEF/lamp07x/attrs"; // Tópico MQTT de envio de informações para Broker
+const char* default_TOPICO_PUBLISH_2 = "/TEF/lamp07x/attrs/l"; // Tópico MQTT de envio de informações para Broker
+const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp07x/attrs/t"; // Envio da temperatura
+const char* default_TOPICO_PUBLISH_4 = "/TEF/lamp07x/attrs/h"; // Envio da umidade
+const char* default_ID_MQTT = "fiware_07x"; // ID MQTT
 const int default_D4 = 2; // Pino do LED onboard
 // Declaração da variável para o prefixo do tópico
-const char* topicPrefix = "lamp06x";
+const char* topicPrefix = "lamp07x";
 
 // Variáveis para configurações editáveis
 char* SSID = const_cast<char*>(default_SSID);
@@ -40,9 +39,18 @@ char* TOPICO_PUBLISH_3 = const_cast<char*>(default_TOPICO_PUBLISH_3);
 char* TOPICO_PUBLISH_4 = const_cast<char*>(default_TOPICO_PUBLISH_4);
 char* ID_MQTT = const_cast<char*>(default_ID_MQTT);
 int D4 = default_D4;
+
+
 #define DHTPIN 15 
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
+
+float somaTemp = 0;
+float somaLum = 0;
+float somaUmi = 0;
+int contador = 0;
+
+
 
 WiFiClient espClient;
 PubSubClient MQTT(espClient);
@@ -86,6 +94,12 @@ void loop() {
     handleTemperature();
     handleHumidity();
     MQTT.loop();
+    if(contador != 10){
+      contador++;
+    }
+    else{
+      contador = 0;
+    }
 }
 
 void reconectWiFi() {
@@ -122,6 +136,11 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     // Compara com o tópico recebido
     if (msg.equals(onTopic)) {
         digitalWrite(D4, HIGH);
+        delay(1000);
+        digitalWrite(D4, LOW);
+        delay(1000);
+        digitalWrite(D4, HIGH);
+
         EstadoSaida = '1';
     }
 
@@ -181,25 +200,40 @@ void reconnectMQTT() {
 void handleLuminosity() {
     const int potPin = 34;
     int sensorValue = analogRead(potPin);
-    int luminosity = map(sensorValue, 0, 4095, 0, 100);
-    String mensagem = String(luminosity);
-    Serial.print("Valor da luminosidade: ");
-    Serial.println(mensagem.c_str());
-    MQTT.publish(TOPICO_PUBLISH_2, mensagem.c_str());
+    int luminosity = map(sensorValue, 1228, 4095, 0, 100);
+    somaLum += luminosity;
+    if(contador == 10){
+      Serial.print("Valor da luminosidade: ");
+      float media = somaLum/10;
+      String mensagem = String(media);
+      Serial.println(mensagem.c_str());
+      MQTT.publish(TOPICO_PUBLISH_2, mensagem.c_str());
+      somaLum = 0;
+    }
 }
 
 void handleTemperature() {
     float temperature = dht.readTemperature();
-    String mensagem = String(temperature);
-    Serial.print("Valor da Temperatura: ");
-    Serial.println(mensagem.c_str());
-    MQTT.publish(TOPICO_PUBLISH_3, mensagem.c_str());
+    somaTemp += temperature;
+    if(contador == 10){
+      Serial.print("Valor da temperatura: ");
+      float media = somaTemp/10;
+      String mensagem = String(media);
+      Serial.println(mensagem.c_str());
+      MQTT.publish(TOPICO_PUBLISH_3, mensagem.c_str());
+      somaTemp = 0;
+    }
 }
 
 void handleHumidity() {
   int humidity = dht.readHumidity();
-  String mensagem = String(humidity);
-  Serial.print("Valor da Umidade: ");
-  Serial.println(mensagem.c_str());
-  MQTT.publish(TOPICO_PUBLISH_4, mensagem.c_str());
+  somaUmi += humidity;
+    if(contador == 10){
+      Serial.print("Valor da umidade: ");
+      float media = somaUmi/10;
+      String mensagem = String(media);
+      Serial.println(mensagem.c_str());
+      MQTT.publish(TOPICO_PUBLISH_4, mensagem.c_str());
+      somaUmi = 0;
+    }
 }
