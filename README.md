@@ -34,7 +34,7 @@ Obtido através do Wokwi, a plataforma oferece uma interface visual para adicion
 |<div align="center" width="300px">![Diagrama Elétrico](./images/diagramaEletrico.jpg)</div>|
 
 ### Projeto Físico
-|<div align="center" width="300px">![Projeto Físico](./images/circuitoReal.jpeg)</div>|
+|<div align="center" width="300px">![Projeto Físico](./images/circuitoReal.jpg)</div>|
 
 ## Software
 ### FIWARE
