@@ -122,9 +122,9 @@ app.layout = html.Div([
     dcc.Store(id='temperature-data-store', data={'timestamps': [], 'temperature_values': []}),
     dcc.Store(id='humidity-data-store', data={'timestamps': [], 'humidity_values': []}),
     
-    html.H1('ESP 32 Data Viewer'),
+    html.H1('ESP 32 Data Viewer', style={'color': 'darkblue', 'font-size': '60px'}),
     html.Div([
-            html.H2('Dados de Luminosidade'),
+            html.H2('Dados de Luminosidade', style={'color': 'darkblue', 'font-size': '40px'}),
             dcc.Graph(id='luminosity-graph'),
             dbc.Row([
                 dbc.Col(dcc.Graph(id='luminosity-ErrorData-graph'), width=6),
@@ -135,7 +135,7 @@ app.layout = html.Div([
         
         #Div for temperature dashboard
         html.Div([
-            html.H2('Dados de Temperatura'),
+            html.H2('Dados de Temperatura', style={'color': 'darkblue', 'font-size': '40px'}),
             dcc.Graph(id='temperature-graph'),
             dbc.Row([
                 dbc.Col(dcc.Graph(id='temperature-ErrorData-graph'),width=6 ),
@@ -146,7 +146,7 @@ app.layout = html.Div([
         
         #Div for humidity dashboard
         html.Div([
-            html.H2('Dados de Umidade'),
+            html.H2('Dados de Umidade', style={'color': 'darkblue', 'font-size': '40px'}),
             dcc.Graph(id='humidity-graph'),
             dbc.Row([
                 dbc.Col(dcc.Graph(id='humidity-ErrorData-graph'),width=6 ),
@@ -162,7 +162,7 @@ app.layout = html.Div([
             interval=10*1000,  # in milliseconds (10 seconds)
             n_intervals=0
         )
-])
+], style={'background-color': 'lightblue'})
 
     
 
@@ -394,4 +394,4 @@ def generic_UpdatePieGraph(valores):
 ###########################################################################################################################
 #Run server
 if __name__ == '__main__':
-    app.run_server(debug=True, host=DASH_HOST, port=8050)
+    app.run_server(debug=True, host=DASH_HOST, port=8040)
