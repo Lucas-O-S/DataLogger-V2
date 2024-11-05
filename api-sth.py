@@ -10,24 +10,24 @@ import plotly.express as px
 import pandas as pd
 import json
 
- 
+
 # Constants for IP and port
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
 lamp = "06x"
 
-#variaveis 
+# variaveis
 triggerMinLum = 0
 triggerMaxLum = 30
-erroTotalLum=0
+erroTotalLum = 0
 erroMinLum = 0
 erroMaxLum = 0
 valorDentroLimiteLum = 0
 
 triggerMinTemp = 15
 triggerMaxTemp = 25
-erroTotalTemp=0
+erroTotalTemp = 0
 erroMinTemp = 0
 erroMaxTemp = 0
 valorDentroLimiteTemp = 0
@@ -43,12 +43,14 @@ ErroLuz = False
 ErroTemp = False
 ErroUmi = False
 
- #################################################################################
- #Functions before start
- 
+#################################################################################
+# Functions before start
+
 # Function to get data from the API
-def get_data(lastN,dataType):
-    #call api data
+
+
+def get_data(lastN, dataType):
+    # call api data
     url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{lamp}/attributes/{dataType}?lastN={lastN}"
     headers = {
         'fiware-service': 'smart',
@@ -67,6 +69,7 @@ def get_data(lastN,dataType):
         print(f"Error accessing {url}: {response.status_code}")
         return []
 
+
 def turn_light():
     global ErroLuz, ErroTemp, ErroUmi
 
@@ -76,12 +79,12 @@ def turn_light():
         'fiware-servicepath': '/',
         'Content-Type': 'application/json'  # Adicione este cabeçalho
     }
-    
-    if(ErroLuz == False and ErroUmi == False and ErroTemp == False ):
+
+    if (ErroLuz == False and ErroUmi == False and ErroTemp == False):
         estado = "off"
     else:
         estado = "on"
-    
+
     # Defina o corpo da requisição
     payload = {
         f"{estado}": {
@@ -91,8 +94,9 @@ def turn_light():
     }
     requests.patch(url, headers=headers, data=json.dumps(payload))
 
- 
  # Function to convert UTC timestamps to São Paulo time
+
+
 def convert_to_sao_paulo_time(timestamps):
     utc = pytz.utc
     lisbon = pytz.timezone('America/Sao_Paulo')
@@ -100,82 +104,90 @@ def convert_to_sao_paulo_time(timestamps):
     for timestamp in timestamps:
         try:
             timestamp = timestamp.replace('T', ' ').replace('Z', '')
-            converted_time = utc.localize(datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')).astimezone(lisbon)
+            converted_time = utc.localize(datetime.strptime(
+                timestamp, '%Y-%m-%d %H:%M:%S.%f')).astimezone(lisbon)
         except ValueError:
             # Handle case where milliseconds are not present
-            converted_time = utc.localize(datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')).astimezone(lisbon)
+            converted_time = utc.localize(datetime.strptime(
+                timestamp, '%Y-%m-%d %H:%M:%S')).astimezone(lisbon)
         converted_timestamps.append(converted_time)
     return converted_timestamps
- 
+
+
 # Set lastN value
 lastN = 10  # Get 10 most recent points at each interval
- 
- #############################################################################################################
- #Layout data
- 
+
+#############################################################################################################
+# Layout data
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
- 
+
 app.layout = html.Div([
-    
+
     # Store to hold historical data
-    dcc.Store(id='luminosity-data-store', data={'timestamps': [], 'luminosity_values': []}),
-    dcc.Store(id='temperature-data-store', data={'timestamps': [], 'temperature_values': []}),
-    dcc.Store(id='humidity-data-store', data={'timestamps': [], 'humidity_values': []}),
-    
-    html.H1('ESP 32 Data Viewer', style={'color': 'darkblue', 'font-size': '60px'}),
+    dcc.Store(id='luminosity-data-store',
+              data={'timestamps': [], 'luminosity_values': []}),
+    dcc.Store(id='temperature-data-store',
+              data={'timestamps': [], 'temperature_values': []}),
+    dcc.Store(id='humidity-data-store',
+              data={'timestamps': [], 'humidity_values': []}),
+
+    html.H1('ESP 32 Data Viewer', style={
+            'color': 'darkblue', 'font-size': '60px', 'margin-left': '20px', 'padding-top': '20px', 'font-family': 'Consolas', 'font-weight': 1100}),
     html.Div([
-            html.H2('Dados de Luminosidade', style={'color': 'darkblue', 'font-size': '40px'}),
-            dcc.Graph(id='luminosity-graph'),
-            dbc.Row([
-                dbc.Col(dcc.Graph(id='luminosity-ErrorData-graph'), width=6),
-                dbc.Col(dcc.Graph(id='luminosity-Pie-graph'), width=6)
-            ])
-        ]),
+        html.H2('Dados de Luminosidade', style={
+                'color': 'darkblue', 'font-size': '40px', 'margin-left': '30px', 'margin-top': '20px', 'font-family': 'Consolas', 'font-weight': 800}),
+        dcc.Graph(id='luminosity-graph'),
+        dbc.Row([
+            dbc.Col(dcc.Graph(id='luminosity-ErrorData-graph'), width=6),
+            dbc.Col(dcc.Graph(id='luminosity-Pie-graph'), width=6)
+        ])
+    ],
+    ),
 
-        
-        #Div for temperature dashboard
-        html.Div([
-            html.H2('Dados de Temperatura', style={'color': 'darkblue', 'font-size': '40px'}),
-            dcc.Graph(id='temperature-graph'),
-            dbc.Row([
-                dbc.Col(dcc.Graph(id='temperature-ErrorData-graph'),width=6 ),
-                dbc.Col(dcc.Graph(id='temperature-Pie-graph'),width=6)
-            ])
-            
-        ]),
-        
-        #Div for humidity dashboard
-        html.Div([
-            html.H2('Dados de Umidade', style={'color': 'darkblue', 'font-size': '40px'}),
-            dcc.Graph(id='humidity-graph'),
-            dbc.Row([
-                dbc.Col(dcc.Graph(id='humidity-ErrorData-graph'),width=6 ),
-                 dbc.Col(dcc.Graph(id='humidity-Pie-graph'),width=6)
+    # Div for temperature dashboard
+    html.Div([
+        html.H2('Dados de Temperatura', style={
+            'color': 'darkblue', 'font-size': '40px', 'margin-left': '30px', 'margin-top': '20px', 'font-family': 'Consolas', 'font-weight': 800}),
+        dcc.Graph(id='temperature-graph'),
+        dbc.Row([
+                dbc.Col(dcc.Graph(id='temperature-ErrorData-graph'), width=6),
+                dbc.Col(dcc.Graph(id='temperature-Pie-graph'), width=6)
+                ])
 
-            ])
+    ]),
 
-        ]),
+    # Div for humidity dashboard
+    html.Div([
+        html.H2('Dados de Umidade', style={
+            'color': 'darkblue', 'font-size': '40px', 'margin-left': '30px', 'margin-top': '20px', 'font-family': 'Consolas', 'font-weight': 800}),
+        dcc.Graph(id='humidity-graph'),
+        dbc.Row([
+                dbc.Col(dcc.Graph(id='humidity-ErrorData-graph'), width=6),
+                dbc.Col(dcc.Graph(id='humidity-Pie-graph'), width=6)
 
-        #Update site
-        dcc.Interval(
-            id='interval-component',
-            interval=10*1000,  # in milliseconds (10 seconds)
-            n_intervals=0
-        )
+                ])
+
+    ]),
+
+    # Update site
+    dcc.Interval(
+        id='interval-component',
+        interval=10*1000,  # in milliseconds (10 seconds)
+        n_intervals=0
+    )
 ], style={'background-color': 'lightblue'})
-
-    
 
 
 ##########################################################################################################
-#Callbacks
-#Get data of all data stores
+# Callbacks
+# Get data of all data stores
 @app.callback(
     Output('luminosity-data-store', 'data'),
     Output('temperature-data-store', 'data'),
     Output('humidity-data-store', 'data'),
-    
-    #add one input for humidity
+
+    # add one input for humidity
     Input('interval-component', 'n_intervals'),
     State('luminosity-data-store', 'data'),
     State('temperature-data-store', 'data'),
@@ -187,52 +199,54 @@ def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     global erroMaxUmi, erroMinUmi, valorDentroLimiteUmi
     global ErroLuz, ErroTemp, ErroUmi
 
-    luminosity_data = generic_update_data_store(n,luminosity_data,"luminosity")
-        
-    temperature_data = generic_update_data_store(n,temperature_data,"temperature")
-    
-    humidity_data = generic_update_data_store(n,humidity_data,"humidity")
-    
+    luminosity_data = generic_update_data_store(
+        n, luminosity_data, "luminosity")
+
+    temperature_data = generic_update_data_store(
+        n, temperature_data, "temperature")
+
+    humidity_data = generic_update_data_store(n, humidity_data, "humidity")
+
     if temperature_data:
-        
-        if temperature_data["temperature_values"][-1] > triggerMaxTemp  :
+
+        if temperature_data["temperature_values"][-1] > triggerMaxTemp:
             ErroTemp = True
-            erroMaxTemp+=1
-        elif temperature_data["temperature_values"][-1] < triggerMinTemp  :
+            erroMaxTemp += 1
+        elif temperature_data["temperature_values"][-1] < triggerMinTemp:
             ErroTemp = True
-            erroMinTemp+=1
+            erroMinTemp += 1
         else:
             ErroTemp = False
-            valorDentroLimiteTemp+=1
-            
+            valorDentroLimiteTemp += 1
+
     if luminosity_data:
-        
-        if luminosity_data["luminosity_values"][-1] > triggerMaxLum  :
+
+        if luminosity_data["luminosity_values"][-1] > triggerMaxLum:
             ErroLuz = True
-            erroMaxLum+=1
-        elif luminosity_data["luminosity_values"][-1] < triggerMinLum  :
+            erroMaxLum += 1
+        elif luminosity_data["luminosity_values"][-1] < triggerMinLum:
             ErroLuz = True
-            erroMinLum+=1
+            erroMinLum += 1
         else:
             ErroLuz = False
-            valorDentroLimiteLum+=1
-            
+            valorDentroLimiteLum += 1
+
     if humidity_data:
-        
-        if humidity_data["humidity_values"][-1] > triggerMaxUmi  :
+
+        if humidity_data["humidity_values"][-1] > triggerMaxUmi:
             ErroUmi = True
-            erroMaxUmi+=1
-        elif humidity_data["humidity_values"][-1] < triggerMinUmi  :
+            erroMaxUmi += 1
+        elif humidity_data["humidity_values"][-1] < triggerMinUmi:
             ErroUmi = True
-            erroMinUmi+=1
+            erroMinUmi += 1
         else:
             ErroUmi = False
-            valorDentroLimiteUmi+=1
+            valorDentroLimiteUmi += 1
     turn_light()
     return luminosity_data, temperature_data, humidity_data
 
 
-#update line graphs
+# update line graphs
 @app.callback(
     Output('luminosity-graph', 'figure'),
     Output('temperature-graph', 'figure'),
@@ -243,27 +257,33 @@ def update_data_store(n, luminosity_data, temperature_data, humidity_data):
     Input('humidity-data-store', 'data')
 )
 def update_graph(luminosity_data, temperature_data, humidity_data):
-    fig_luminosity = generic_update_graph(luminosity_data,"luminosity","Luminosidade","orange")
-    fig_temperature = generic_update_graph(temperature_data,"temperature","Temperatura","red")
-    fig_humidity = generic_update_graph(humidity_data,"humidity","Umidade","yellow")
-    
+    fig_luminosity = generic_update_graph(
+        luminosity_data, "luminosity", "Luminosidade", "orange")
+    fig_temperature = generic_update_graph(
+        temperature_data, "temperature", "Temperatura", "red")
+    fig_humidity = generic_update_graph(
+        humidity_data, "humidity", "Umidade", "yellow")
+
     return fig_luminosity, fig_temperature, fig_humidity
 
 
-#update bar graph
+# update bar graph
 @app.callback(
-    Output('luminosity-ErrorData-graph','figure'),
-    Output('temperature-ErrorData-graph','figure'),
-    Output('humidity-ErrorData-graph','figure'),
+    Output('luminosity-ErrorData-graph', 'figure'),
+    Output('temperature-ErrorData-graph', 'figure'),
+    Output('humidity-ErrorData-graph', 'figure'),
 
     Input('interval-component', 'n_intervals'),
 
 )
 def updateErroGraph(n):
-        luminosity_histogram = generic_updateErroGraph([valorDentroLimiteLum,erroMaxLum,erroMinLum])
-        temperature_histogram = generic_updateErroGraph([valorDentroLimiteTemp,erroMaxTemp,erroMinTemp])
-        humidity_histogram = generic_updateErroGraph([valorDentroLimiteUmi,erroMaxUmi,erroMinUmi])
-        return luminosity_histogram,temperature_histogram,humidity_histogram
+    luminosity_histogram = generic_updateErroGraph(
+        [valorDentroLimiteLum, erroMaxLum, erroMinLum])
+    temperature_histogram = generic_updateErroGraph(
+        [valorDentroLimiteTemp, erroMaxTemp, erroMinTemp])
+    humidity_histogram = generic_updateErroGraph(
+        [valorDentroLimiteUmi, erroMaxUmi, erroMinUmi])
+    return luminosity_histogram, temperature_histogram, humidity_histogram
 
 
 @app.callback(
@@ -274,24 +294,29 @@ def updateErroGraph(n):
     Input('interval-component', 'n_intervals'),
 )
 def UpdatePieGraph(n):
-    luminosity_pie = generic_UpdatePieGraph([valorDentroLimiteLum,erroMaxLum,erroMinLum])
-    temperature_pie = generic_UpdatePieGraph([valorDentroLimiteTemp,erroMaxTemp,erroMinTemp])
-    humidity_pie = generic_UpdatePieGraph([valorDentroLimiteUmi,erroMaxUmi,erroMinUmi])
+    luminosity_pie = generic_UpdatePieGraph(
+        [valorDentroLimiteLum, erroMaxLum, erroMinLum])
+    temperature_pie = generic_UpdatePieGraph(
+        [valorDentroLimiteTemp, erroMaxTemp, erroMinTemp])
+    humidity_pie = generic_UpdatePieGraph(
+        [valorDentroLimiteUmi, erroMaxUmi, erroMinUmi])
 
-
-    return luminosity_pie,temperature_pie, humidity_pie
+    return luminosity_pie, temperature_pie, humidity_pie
 
 #############################################################################################################
-#functions
+# functions
 
-#create data store for other datas
-def generic_update_data_store(n, stored_data,dataType):
+# create data store for other datas
+
+
+def generic_update_data_store(n, stored_data, dataType):
     # Get luminosity data
     data = get_data(lastN, dataType)
 
     if data:
         # Extract values and timestamps
-        data_values = [float(entry['attrValue']) for entry in data]  # Ensure values are floats
+        data_values = [float(entry['attrValue'])
+                       for entry in data]  # Ensure values are floats
         timestamps = [entry['recvTime'] for entry in data]
 
         # Calculate the average luminosity for the current interval
@@ -301,20 +326,25 @@ def generic_update_data_store(n, stored_data,dataType):
         timestamps = convert_to_sao_paulo_time(timestamps)
 
         # Append the new average and the latest timestamp to stored data
-        stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
-        stored_data[f'{dataType}_values'].append(average_data)  # Store the average luminosity
+        # Store only the latest timestamp
+        stored_data['timestamps'].append(timestamps[-1])
+        stored_data[f'{dataType}_values'].append(
+            average_data)  # Store the average luminosity
 
         # Calculate total average luminosity
         total_data = sum(stored_data[f'{dataType}_values'])
         total_count = len(stored_data[f'{dataType}_values'])
-        stored_data[f'total_average_{dataType}'] = total_data / total_count if total_count > 0 else 0
+        stored_data[f'total_average_{dataType}'] = total_data / \
+            total_count if total_count > 0 else 0
 
         return stored_data
     return stored_data
 
-#update the graph for others data
-def generic_update_graph(stored_data, data_type,name, data_color):
-    
+# update the graph for others data
+
+
+def generic_update_graph(stored_data, data_type, name, data_color):
+
     if stored_data['timestamps'] and stored_data[f'{data_type}_values']:
         # Create traces for the plot
         trace_average = go.Scatter(
@@ -343,55 +373,59 @@ def generic_update_graph(stored_data, data_type,name, data_color):
             title=f'{name}',
             xaxis_title='Timestamp',
             yaxis_title=f'{data_type}',
+            paper_bgcolor='lightblue',
             hovermode='closest'
         )
 
         return fig_data
 
-    return {} 
+    return {}
 
 
 def generic_updateErroGraph(quantidades):
-        # Criar um DataFrame com as quantidades
-        categorias = ['Dentro do limite', 'Acima do limite', 'Abaixo do limite']
-        
-        df = pd.DataFrame({
-            'Categoria': categorias,
-            'Quantidade': quantidades
-        })
+    # Criar um DataFrame com as quantidades
+    categorias = ['Dentro do limite', 'Acima do limite', 'Abaixo do limite']
 
-        # Criar o gráfico de barras
-        fig_histogram = px.bar(df, x='Categoria', y='Quantidade', text='Quantidade')
+    df = pd.DataFrame({
+        'Categoria': categorias,
+        'Quantidade': quantidades
+    })
 
-        fig_histogram.update_layout(
-            title='Quantidade de valores dentro e fora do limite',
-            yaxis_title='Quantidade',
-            yaxis=dict(title='Quantidade', autorange=True)  
-        )
+    # Criar o gráfico de barras
+    fig_histogram = px.bar(
+        df, x='Categoria', y='Quantidade', text='Quantidade')
 
-        return fig_histogram
+    fig_histogram.update_layout(
+        title='Quantidade de valores dentro e fora do limite',
+        yaxis_title='Quantidade',
+        paper_bgcolor='lightblue',
+        yaxis=dict(title='Quantidade', autorange=True)
+    )
+
+    return fig_histogram
+
 
 def generic_UpdatePieGraph(valores):
     # Cria os dados com as categorias e valores desejados
     ErroTotal = valores[1] + valores[2]
     Total = valores[0] + ErroTotal
-    if Total == 0: 
+    if Total == 0:
         Total = 1
     data = {
         "names": ["Dentro do Limite", "Fora do limite"],
-        "values": [ valores[0]*100/Total, ErroTotal*100/Total]
+        "values": [valores[0]*100/Total, ErroTotal*100/Total]
     }
-    
+
     # Converte o dicionário em um DataFrame
     df = pd.DataFrame(data)
-    
+
     # Gera o gráfico de pizza
     fig = px.pie(df, values="values", names="names", hole=.3)
+    fig.update_layout(paper_bgcolor='lightblue')
     return fig
 
 
-    
 ###########################################################################################################################
-#Run server
+# Run server
 if __name__ == '__main__':
     app.run_server(debug=True, host=DASH_HOST, port=8040)
