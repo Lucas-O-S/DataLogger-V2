@@ -294,15 +294,14 @@ def generic_update_data_store(n, stored_data,dataType):
         data_values = [float(entry['attrValue']) for entry in data]  # Ensure values are floats
         timestamps = [entry['recvTime'] for entry in data]
 
-        # Calculate the average luminosity for the current interval
-        average_data = sum(data_values) / len(data_values)
+
 
         # Convert timestamps to Lisbon time
         timestamps = convert_to_sao_paulo_time(timestamps)
 
         # Append the new average and the latest timestamp to stored data
-        stored_data['timestamps'].append(timestamps[-1])  # Store only the latest timestamp
-        stored_data[f'{dataType}_values'].append(average_data)  # Store the average luminosity
+        stored_data['timestamps'].append([timestamps][-1])  # Store only the latest timestamp
+        stored_data[f'{dataType}_values'].append(data_values[-1])  # Store the average luminosity
 
         return stored_data
     return stored_data
@@ -311,27 +310,20 @@ def generic_update_data_store(n, stored_data,dataType):
 def generic_update_graph(stored_data, data_type,name, data_color):
     
     if stored_data['timestamps'] and stored_data[f'{data_type}_values']:
+        mean = sum(stored_data[f"{data_type}_values"]) / len(stored_data[f'{data_type}_values'])
+
         # Create traces for the plot
         trace_average = go.Scatter(
             x=stored_data['timestamps'],
-            y=stored_data[f'{data_type}_values'],
+            y=stored_data[f'{data_type}_values'][-1],
             mode='lines+markers',
             name=f'{name}',
             line=dict(color=data_color)
         )
 
-        # Create a trace for the total average
-        total_average = stored_data[f'total_average_{data_type}']
-        trace_total_average = go.Scatter(
-            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
-            y=[total_average, total_average],
-            mode='lines',
-            name=f'Media da {name}',
-            line=dict(color='blue', dash='dash')
-        )
-
+    
         # Create figure
-        fig_data = go.Figure(data=[trace_average, trace_total_average])
+        fig_data = go.Figure(data=[trace_average])
 
         # Update layout
         fig_data.update_layout(
