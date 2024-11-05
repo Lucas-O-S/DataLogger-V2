@@ -15,7 +15,7 @@ import json
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "07x"
+lamp = "08x"
 
 #variaveis 
 triggerMinLum = 0
@@ -43,17 +43,24 @@ ErroLuz = False
 ErroTemp = False
 ErroUmi = False
 
+# Set lastN value
+lastN = 1  # Get 10 most recent points at each interval
+ 
+
  #################################################################################
  #Functions before start
  
 # Function to get data from the API
 def get_data(lastN,dataType):
+
+    
     #call api data
     url = f"http://{IP_ADDRESS}:{PORT_STH}/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{lamp}/attributes/{dataType}?lastN={lastN}"
     headers = {
         'fiware-service': 'smart',
         'fiware-servicepath': '/'
     }
+    lastN = 1
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -107,9 +114,7 @@ def convert_to_sao_paulo_time(timestamps):
         converted_timestamps.append(converted_time)
     return converted_timestamps
  
-# Set lastN value
-lastN = 10  # Get 10 most recent points at each interval
- 
+
  #############################################################################################################
  #Layout data
  
@@ -300,32 +305,42 @@ def generic_update_data_store(n, stored_data,dataType):
         timestamps = convert_to_sao_paulo_time(timestamps)
 
         # Append the new average and the latest timestamp to stored data
-        stored_data['timestamps'].append([timestamps][-1])  # Store only the latest timestamp
-        stored_data[f'{dataType}_values'].append(data_values[-1])  # Store the average luminosity
+        stored_data['timestamps'].extend(timestamps) # Store only the latest timestamp
+        stored_data[f'{dataType}_values'].extend(data_values)  # Store the average luminosity
 
         return stored_data
     return stored_data
 
 #update the graph for others data
-def generic_update_graph(stored_data, data_type,name, data_color):
-    
+def generic_update_graph(stored_data, data_type, name, data_color):
     if stored_data['timestamps'] and stored_data[f'{data_type}_values']:
         mean = sum(stored_data[f"{data_type}_values"]) / len(stored_data[f'{data_type}_values'])
 
-        # Create traces for the plot
+        # Inserir um valor None entre o último e o primeiro ponto
+        x_data = stored_data['timestamps'] + [None]
+        y_data = stored_data[f'{data_type}_values'] + [None]
+
+        # Cria a trace para o gráfico
         trace_average = go.Scatter(
-            x=stored_data['timestamps'],
-            y=stored_data[f'{data_type}_values'][-1],
+            x=x_data,
+            y=y_data,
             mode='lines+markers',
             name=f'{name}',
             line=dict(color=data_color)
         )
+        
+        trace_mean = go.Scatter(
+            x=[stored_data['timestamps'][0], stored_data['timestamps'][-1]],
+            y=[mean, mean],
+            mode='lines',
+            name='Mean',
+            line=dict(color='blue', dash='dash')
+        )
 
-    
-        # Create figure
-        fig_data = go.Figure(data=[trace_average])
+        # Cria a figura
+        fig_data = go.Figure(data=[trace_average, trace_mean])
 
-        # Update layout
+        # Atualiza o layout
         fig_data.update_layout(
             title=f'{name}',
             xaxis_title='Timestamp',
@@ -335,7 +350,7 @@ def generic_update_graph(stored_data, data_type,name, data_color):
 
         return fig_data
 
-    return {} 
+    return {}
 
 
 def generic_updateErroGraph(quantidades):
