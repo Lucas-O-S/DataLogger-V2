@@ -30,8 +30,10 @@ O projeto trabalha com as seguintes variáveis em seus respectivos intervalor e 
 
 ### Diagrama Elétrico
 Obtido através do Wokwi, a plataforma oferece uma interface visual para adicionar componentes, conectar fios e escrever código, além de fornecer suporte a bibliotecas populares e a uma grande variedade de sensores e dispositivos.
+|<div align="center">![Diagrama Elétrico](./images/diagramaEletrico.jpg)</div>|
+
 ### Projeto Físico
- 
+ |<div align="center">![Diagrama Elétrico](./images/circuitoReal.jpeg)</div>|
 
 ## Software
 ### FIWARE
