@@ -12,12 +12,12 @@ O projeto trabalha com as seguintes variáveis em seus respectivos intervalor e 
 ### Componentes
 | Componente               | Função                                                                 | Imagens |
 |--------------------------|------------------------------------------------------------------------|
-| Placa de prototipação     | Um equipamento usado para montar circuitos eletrônicos temporários sem a necessidade de solda, facilitando a experimentação. | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
-| ESP32                    | Responsável pela conectividade e comunicação com a plataforma FIWARE, o ESP32 opera em uma faixa de tensão de 0V a 3,3V e permite a transmissão de dados em tempo real. Amplamente utilizado em projetos de Internet das Coisas (IoT) devido sua conectividade Wi-Fi e Bluetooth integrada. Possui um LED onboard. | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
+| Placa de prototipação     | Um equipamento usado para montar circuitos eletrônicos temporários sem a necessidade de solda, facilitando a experimentação. | <div align="center">![Protoboard](./images/Protoboard1.jpg)</div> |
+| ESP32                    | Responsável pela conectividade e comunicação com a plataforma FIWARE, o ESP32 opera em uma faixa de tensão de 0V a 3,3V e permite a transmissão de dados em tempo real. Amplamente utilizado em projetos de Internet das Coisas (IoT) devido sua conectividade Wi-Fi e Bluetooth integrada. Possui um LED onboard. | <div align="center">![ESP32](./images/MFG_ESP32-DEVKITC-VIE.jpg)</div> |
 | DHT11                    | Sensor digital que mede a temperatura e a umidade do ambiente. | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
-| LDR                      | Sensor digital que mede a temperatura e a umidade do ambiente.  | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
-| Resistor de 10KΩ          | Os resistores possuem o papel de proteger os componentes de possíveis excessos de corrente e dividir a tensão do circuito, de modo que, fossem criadas leituras precisas de sinais analógicos. | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
-| Jumpers                  | Conectar fisicamente os componentes.                                  | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
+| LDR                      | Sensor digital que mede a temperatura e a umidade do ambiente.  | <div align="center">![LDR](./images/SENSOR LDR.jfif)</div> |
+| Resistor de 10KΩ          | Os resistores possuem o papel de proteger os componentes de possíveis excessos de corrente e dividir a tensão do circuito, de modo que, fossem criadas leituras precisas de sinais analógicos. | <div align="center">![Resistor](./images/resistor.jfif)</div> |
+| Jumpers                  | Conectar fisicamente os componentes.                                  | <div align="center">![Jumpers](./images/jumpers.jfif)</div> |
 | Aparelho de acesso à internet | 
 	
 ### Conexões
