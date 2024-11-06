@@ -98,7 +98,7 @@ void loop() {
     }
     else{    
       EnviaEstadoOutputMQTT();
-      contador = 0;
+      contador = 1;
     }
 }
 
