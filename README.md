@@ -102,7 +102,7 @@ const char* default_ID_MQTT = "fiware_06x"; // MQTT ID
 float somaTemp = 0;  
 float somaLum = 0;  
 float somaUmi = 0;  
-int contador = 0;
+int contador = 1;
 ```
 
 ### MQTT Communication Setup
