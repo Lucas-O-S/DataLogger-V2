@@ -89,7 +89,6 @@ void setup() {
 
 void loop() {
     VerificaConexoesWiFIEMQTT();
-    EnviaEstadoOutputMQTT();
     handleLuminosity();
     handleTemperature();
     handleHumidity();
@@ -97,7 +96,8 @@ void loop() {
     if(contador != 10){
       contador++;
     }
-    else{
+    else{    
+      EnviaEstadoOutputMQTT();
       contador = 0;
     }
 }
