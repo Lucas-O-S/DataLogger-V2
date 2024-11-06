@@ -1,377 +1,393 @@
-# Monitoramento de Temperatura, Umidade e Luminosidade 
-![Logo TermoLight](./images/termolight.png)</div>
+# Temperature, Humidity, and Luminosity Monitoring
 
-O projeto permite o monitoramento de temperatura, umidade e luminosidade de um ambiente, utilizando um ESP32, comunicação MQTT para envio de dados em tempo real e armazenamento de dados no MongoDB e SQL. Este repositório contém o código necessário para conectar-se a uma rede Wi-Fi e enviar dados para um Broker MQTT, bem como receber comandos para ligar e desligar um LED quando alguns dos parâmetros se encontra fora do intervalo ideal.  Os dados são inicialmente recebidos pelo MongoDB, depois enviados e armazenados no SQL. 
-Além disso, implementa um painel para visualização de dados de luminosidade, temperatura e umidade coletados por um ESP32. Utiliza o Dash para criar uma interface web que exibe gráficos em tempo real, com dados obtidos de uma API e exibidos através de gráficos de linha, barras e pizza. 
-O projeto trabalha com as seguintes variáveis em seus respectivos intervalor e triggers:
-| Variável               | Intervalo  | Trigger (%) | Precisão do componente        |
-|------------------------|------------|-------------|-------------------------------|
-| Luz (LDR)              | 0 a 100%   | 0,1 a 30    | 12 bits de resolução          |
-| Umidade (DHT11)        | 0 a 100%   | 30 a 50     | ±5% RH                        |
-| Temperatura (DHT11)    | 0 a 50ºC   | 15 a 25     | ±2°C                          |
+![TermoLight Logo](./images/termolight.png)
+
+The project enables the monitoring of temperature, humidity, and light levels in an environment using an ESP32, MQTT communication to send real-time data, and storage of data in MongoDB and SQL. This repository contains the necessary code to connect to a Wi-Fi network and send data to an MQTT Broker, as well as to receive commands to turn an LED on and off when certain parameters fall outside the ideal range. The data is initially received by MongoDB, then sent and stored in SQL. It also implements a dashboard for visualizing data such as light, temperature, and humidity collected by an ESP32. It uses Dash to create a web interface that displays real-time graphs, with data obtained from an API and shown in line, bar, and pie charts.
+
+The project works with the following variables in their respective ranges and triggers:
+
+| Variable               | Range      | Trigger (%) | Component Precision         |
+|------------------------|------------|-------------|-----------------------------|
+| Light (LDR)            | 0 to 100%  | 0.1 to 30   | 12-bit resolution            |
+| Humidity (DHT11)       | 0 to 100%  | 30 to 50    | ±5% RH                       |
+| Temperature (DHT11)    | 0 to 50ºC  | 15 to 25    | ±2°C                         |
 
 ## Hardware
-### Componentes
-| Componente               | Função                                                                 | Imagens                                            |
-|--------------------------|------------------------------------------------------------------------|----------------------------------------------------|
-| Placa de prototipação     | Um equipamento usado para montar circuitos eletrônicos temporários sem a necessidade de solda, facilitando a experimentação. | <div align="center">![Protoboard](./images/Protoboard1.jpg)</div> |
-| ESP32                    | Responsável pela conectividade e comunicação com a plataforma FIWARE, o ESP32 opera em uma faixa de tensão de 0V a 3,3V e permite a transmissão de dados em tempo real. Amplamente utilizado em projetos de Internet das Coisas (IoT) devido sua conectividade Wi-Fi e Bluetooth integrada. Possui um LED onboard. | <div align="center">![ESP32](./images/MFG_ESP32-DEVKITC-VIE.jpg)</div> |
-| DHT11                    | Sensor digital que mede a temperatura e a umidade do ambiente. | <div align="center">![DHT11](./images/DHT11.jpeg)</div> |
-| LDR                      | Sensor digital que mede a temperatura e a umidade do ambiente.  | <div align="center">![LDR](./images/sensorLuz.jpeg)</div> |
-| Resistor de 10KΩ          | Os resistores possuem o papel de proteger os componentes de possíveis excessos de corrente e dividir a tensão do circuito, de modo que, fossem criadas leituras precisas de sinais analógicos. | <div align="center">![Resistor](./images/resistor.jfif)</div> |
-| Jumpers                  | Conectar fisicamente os componentes.                                  | <div align="center">![Jumpers](./images/jumpers.jfif)</div> |
-| Aparelho de acesso à internet | 
-	
-### Conexões
-| Componente  | Conexão                                                     |
-|-------------|-------------------------------------------------------------|
-| DHT11       | Pino de dados (DHT11) - Pino 15 (ESP32)                     |
-|             | VCC (DHT11)                                                 |
-|             | GND (DHT11)                                                 |
-| LDR         | Pino de saída (LDR) – Pino 34 (ESP32)                       |
 
-### Diagrama Elétrico
-Obtido através do Wokwi, a plataforma oferece uma interface visual para adicionar componentes, conectar fios e escrever código, além de fornecer suporte a bibliotecas populares e a uma grande variedade de sensores e dispositivos.
+### Components
 
-| <div align="center">![Diagrama Eletrico](./images/diagramaEletrico.jpg)</div> |
+| Component               | Function                                                                | Images                                              |
+|-------------------------|-------------------------------------------------------------------------|-----------------------------------------------------|
+| Breadboard              | A device used for building temporary electronic circuits without soldering, facilitating experimentation. | ![Protoboard](./images/Protoboard1.jpg) |
+| ESP32                   | Responsible for connectivity and communication with the FIWARE platform, the ESP32 operates in a voltage range of 0V to 3.3V and allows real-time data transmission. Widely used in IoT (Internet of Things) projects due to its built-in Wi-Fi and Bluetooth connectivity. It has an onboard LED. | ![ESP32](./images/MFG_ESP32-DEVKITC-VIE.jpg) |
+| DHT11                   | A digital sensor that measures temperature and humidity in the environment. | ![DHT11](./images/DHT11.jpeg) |
+| LDR                     | A digital sensor that measures light levels in the environment. | ![LDR](./images/sensorLuz.jpeg) |
+| 10KΩ Resistor           | Resistors protect components from excessive current and divide the circuit voltage, ensuring accurate analog signal readings. | ![Resistor](./images/resistor.jfif) |
+| Jumper Wires            | Used to physically connect components.                                    | ![Jumpers](./images/jumpers.jfif) |
 
-### Projeto Físico
-| <div align="center">![Projeto Físico](./images/circuitoReal.jpg)</div> |
+### Connections
+
+| Component  | Connection                                                   |
+|------------|--------------------------------------------------------------|
+| DHT11      | Data pin (DHT11) - Pin 15 (ESP32)                             |
+|            | VCC (DHT11)                                                   |
+|            | GND (DHT11)                                                   |
+| LDR        | Output pin (LDR) – Pin 34 (ESP32)                             |
+
+### Electrical Diagram
+
+Generated using Wokwi, the platform offers a visual interface for adding components, connecting wires, and writing code, as well as supporting popular libraries and a wide variety of sensors and devices.
+
+![Electrical Diagram](./images/diagramaEletrico.jpg)
+
+### Physical Setup
+
+![Physical Setup](./images/circuitoReal.jpg)
 
 ## Software
+
 ### FIWARE
-O FIWARE é uma plataforma aberta que oferece ferramentas e APIs para desenvolver soluções inteligentes, facilitando a interoperabilidade entre sistemas, dispositivos IoT e aplicações. Seu principal componente, o Orion Context Broker, gerencia dados contextuais em tempo real, permitindo que dispositivos compartilhem informações, neste caso, temperatura, umidade e luminosidade, promovendo decisões automatizadas. A implantação dos componentes, conhecidos como Generic Enablers, é feita com Docker, o que facilita a escalabilidade e a portabilidade dos módulos. APIs RESTful garantem a comunicação entre os sistemas, enquanto o broker MQTT integra dados do ESP32 à plataforma FIWARE para processamento e análise em tempo real. 
-#### Diagrama (arquitetura em camadas) de aplicação 
-| <div align="center">![Diagrama (arquitetura em camadas)](./images/diagramaFiware.png)</div> |
- 
-### Dependências
-Este projeto requer as seguintes bibliotecas para funcionar:<br>
-•	WiFi.h: Biblioteca para conectar o ESP32 à rede Wi-Fi.<br>
-•	PubSubClient.h: Biblioteca para habilitar a comunicação MQTT com o Broker.<br>
-•	DHT.h: Biblioteca para o sensor de temperatura e umidade DHT11.<br>
-``` phyton
+
+FIWARE is an open platform that provides tools and APIs for developing smart solutions, facilitating interoperability between systems, IoT devices, and applications. Its main component, the Orion Context Broker, manages contextual data in real time, allowing devices to share information. In this case, temperature, humidity, and light data are sent to FIWARE for automated decision-making. The platform's components, known as Generic Enablers, are deployed via Docker, which ensures scalability and portability. RESTful APIs ensure communication between systems, while the MQTT broker integrates data from the ESP32 into FIWARE for real-time processing and analysis.
+
+#### Diagram (Layered Architecture) of the Application
+
+![Diagram (Layered Architecture)](./images/diagramaFiware.png)
+
+### Dependencies
+
+This project requires the following libraries to function:
+
+- WiFi.h: Library to connect the ESP32 to the Wi-Fi network.
+- PubSubClient.h: Library to enable MQTT communication with the Broker.
+- DHT.h: Library for the DHT11 temperature and humidity sensor.
+
+```cpp
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <DHT.h>
 ```
-Certifique-se de instalar essas bibliotecas antes de carregar o código. Para instalar essas bibliotecas, abra o Arduino IDE e acesse **Sketch > Incluir Biblioteca > Gerenciar Bibliotecas.... ** Pesquise e instale as bibliotecas.
-### Variáveis Configuráveis
-No código, atualize os seguintes parâmetros conforme necessário:<br>
-•	default_SSID: Nome da rede Wi-Fi<br>
-•	default_PASSWORD: Senha da rede Wi-Fi<br>
-•	default_BROKER_MQTT: IP do Broker MQTT<br>
-•	default_TOPICO_SUBSCRIBE: Tópico de escuta para receber comandos do Broker<br>
-•	default_TOPICO_PUBLISH_*: Tópicos de publicação para envio de informações de luminosidade, temperatura e umidade<br>
-•	default_ID_MQTT: Identifica de forma única um cliente conectado a um Broker MQTT (servidor MQTT)<br>
-```phyton
-const char* default_SSID = "HORIZON"; // Nome da rede Wi-Fi
-const char* default_PASSWORD = "1234567890"; // Senha da rede Wi-Fi
-const char* default_BROKER_MQTT = "4.228.64.5"; // IP do Broker MQTT
-const int default_BROKER_PORT = 1883; // Porta do Broker MQTT - **não mudar**
-const char* default_TOPICO_SUBSCRIBE = "/TEF/lamp06x/cmd"; // Tópico MQTT de escuta
-const char* default_TOPICO_PUBLISH_1 = "/TEF/lamp06x/attrs"; // Tópico MQTT de envio de informações para Broker
-const char* default_TOPICO_PUBLISH_2 = "/TEF/lamp06x/attrs/l"; // Tópico MQTT de envio de informações para Broker
-const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp06x/attrs/t"; // Envio da temperatura
-const char* default_TOPICO_PUBLISH_4 = "/TEF/lamp06x/attrs/h"; // Envio da umidade
-const char* default_ID_MQTT = "fiware_06x"; // ID MQTT
+
+Ensure that these libraries are installed before uploading the code. To install these libraries, open the Arduino IDE and go to **Sketch > Include Library > Manage Libraries....** Search for and install the libraries.
+
+### Configurable Variables
+
+In the code, update the following parameters as necessary:
+
+- default_SSID: Wi-Fi network name
+- default_PASSWORD: Wi-Fi network password
+- default_BROKER_MQTT: MQTT Broker IP
+- default_TOPICO_SUBSCRIBE: Topic to listen to receive commands from the Broker
+- default_TOPICO_PUBLISH_*: Topics to publish information to the Broker
+- default_ID_MQTT: Uniquely identifies a client connected to the MQTT Broker
+
+```cpp
+const char* default_SSID = "HORIZON"; // Wi-Fi network name
+const char* default_PASSWORD = "1234567890"; // Wi-Fi network password
+const char* default_BROKER_MQTT = "4.228.64.5"; // MQTT Broker IP
+const int default_BROKER_PORT = 1883; // MQTT Broker port - **do not change**
+const char* default_TOPICO_SUBSCRIBE = "/TEF/lamp06x/cmd"; // MQTT topic to listen to
+const char* default_TOPICO_PUBLISH_1 = "/TEF/lamp06x/attrs"; // MQTT topic to send light information to Broker
+const char* default_TOPICO_PUBLISH_2 = "/TEF/lamp06x/attrs/l"; // MQTT topic to send light information to Broker
+const char* default_TOPICO_PUBLISH_3 = "/TEF/lamp06x/attrs/t"; // Send temperature
+const char* default_TOPICO_PUBLISH_4 = "/TEF/lamp06x/attrs/h"; // Send humidity
+const char* default_ID_MQTT = "fiware_06x"; // MQTT ID
 ```
-###Variáveis de agregação:
-•	float somaTemp, float somaLum, float somaUmi: somam valores de temperatura, luminosidade e umidade para calcular médias.
-•	int contador: contador para controlar o número de leituras.
-```phyton
-float somaTemp = 0; 
-float somaLum = 0; 
-float somaUmi = 0; 
+
+### Aggregation Variables:
+•	`float somaTemp`, `float somaLum`, `float somaUmi`: sum temperature, luminosity, and humidity values to calculate averages.  
+•	`int contador`: counter to control the number of readings.  
+
+```cpp
+float somaTemp = 0;  
+float somaLum = 0;  
+float somaUmi = 0;  
 int contador = 0;
 ```
-### Configuração da Comunicação MQTT
-•	 WiFiClient espClient: cria um cliente Wi-Fi para o ESP32.<br>
-•	  PubSubClient MQTT(espClient): cria um cliente MQTT com base na conexão Wi-Fi.<br>
-•	  char EstadoSaida = '0';: armazena o estado de saída, usado para representar o estado do dispositivo ou um parâmetro de controle.<br>
-```phyton
-WiFiClient espClient; 
-PubSubClient MQTT(espClient); 
+
+### MQTT Communication Setup
+•	`WiFiClient espClient`: creates a Wi-Fi client for the ESP32.<br>  
+•	`PubSubClient MQTT(espClient)`: creates an MQTT client based on the Wi-Fi connection.<br>  
+•	`char EstadoSaida = '0';`: stores the output state, used to represent the device's state or a control parameter.<br>  
+
+```cpp
+WiFiClient espClient;  
+PubSubClient MQTT(espClient);  
 char EstadoSaida = '0';
 ```
-### Estrutura de Tópicos MQTT
-•	  TOPICO_SUBSCRIBE: /TEF/lamp06x/cmd - Escuta comandos (ex.: ligar/desligar). <br>
-•	  TOPICO_PUBLISH_1: /TEF/lamp06x/attrs - Publica o estado atual do LED. <br>
-•	  TOPICO_PUBLISH_2: /TEF/lamp06x/attrs/l - Publica valores de luminosidade. <br>
-•	  TOPICO_PUBLISH_3: /TEF/lamp06x/attrs/t - Publica valores de temperatura.<br>
-•	  TOPICO_PUBLISH_4: /TEF/lamp06x/attrs/h - Publica valores de umidade.<br>
 
-### Funções
-•	**initSerial()**: Inicia a comunicação Serial para acompanhar as mensagens de depuração no Monitor Serial.  
-``` phyton
-void initSerial() {
-    Serial.begin(115200);
-}
-```
+### MQTT Topic Structure
+•	`TOPICO_SUBSCRIBE`: `/TEF/lamp06x/cmd` - Listens to commands (e.g., on/off). <br>  
+•	`TOPICO_PUBLISH_1`: `/TEF/lamp06x/attrs` - Publishes the current state of the LED. <br>  
+•	`TOPICO_PUBLISH_2`: `/TEF/lamp06x/dados` - Publishes sensor data, including temperature, luminosity, and humidity averages. 
 
-•	**initWiFi()**: Conecta o ESP32 à rede Wi-Fi, exibindo mensagens no Serial sobre o processo de conexão.
-```phyton
-void initWiFi() {
-    delay(10);
-    Serial.println("------Conexao WI-FI------");
-    Serial.print("Conectando-se na rede: ");
-    Serial.println(SSID);
-    Serial.println("Aguarde");
-    reconectWiFi();
-}
-```
-
-•	  **initMQTT()**: Conecta o ESP32 ao Broker MQTT e configura o callback para processar mensagens recebidas.
-```phyton
-void initMQTT() {
-    MQTT.setServer(BROKER_MQTT, BROKER_PORT);
-    MQTT.setCallback(mqtt_callback);
-}
-```
-
-•	**setup()**: é executada apenas uma vez quando o dispositivo é ligado ou reiniciado. Nessa função, você configura e inicializa todos os componentes e variáveis necessários para o funcionamento do dispositivo.
-```phyton
-void setup() {
-    dht.begin();
-    InitOutput();
-    initSerial();
-    initWiFi();
-    initMQTT();
-    //dht.begin();
-    /*pinMode(35, INPUT);
-    pinMode(34, INPUT);*/
-    delay(5000); 
-    MQTT.publish(TOPICO_PUBLISH_1, "s|on");
-}
-```
-
-•	**Loop()**: é executada continuamente enquanto o dispositivo estiver em funcionamento. É aqui que ficam as operações e leituras repetitivas, como manter a conexão, monitorar sensores e enviar dados.
-```phyton
-void loop() {
-    VerificaConexoesWiFIEMQTT();
-    EnviaEstadoOutputMQTT();
-    handleLuminosity();
-    handleTemperature();
-    handleHumidity();
-    MQTT.loop();
-}
-```
-
-•	  **reconectWiFi()**: Verifica e reconecta ao Wi-Fi, se desconectado.
-```phyton
-void reconectWiFi() {
-    if (WiFi.status() == WL_CONNECTED)
-        return;
-    WiFi.begin(SSID, PASSWORD);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(100);
-        Serial.print(".");
+### Functions
+- **initSerial()**: Initializes Serial communication to track debugging messages on the Serial Monitor.
+    ```cpp
+    void initSerial() {
+        Serial.begin(115200);
     }
-    Serial.println();
-    Serial.println("Conectado com sucesso na rede ");
-    Serial.print(SSID);
-    Serial.println("IP obtido: ");
-    Serial.println(WiFi.localIP());
+    ```
 
-    // Garantir que o LED inicie desligado
-    digitalWrite(D4, LOW);
-}
-```
+- **initWiFi()**: Connects the ESP32 to the Wi-Fi network, displaying messages in Serial about the connection process.
+    ```cpp
+    void initWiFi() {
+        delay(10);
+        Serial.println("------Connecting to WI-FI------");
+        Serial.print("Connecting to network: ");
+        Serial.println(SSID);
+        Serial.println("Please wait");
+        reconectWiFi();
+    }
+    ```
 
-•	  **reconnectMQTT()**: Verifica e reconecta ao Broker MQTT caso conexão seja perdida.
-```phyton
-void reconnectMQTT() {
-    while (!MQTT.connected()) {
-        Serial.print("* Tentando se conectar ao Broker MQTT: ");
-        Serial.println(BROKER_MQTT);
-        if (MQTT.connect(ID_MQTT)) {
-            Serial.println("Conectado com sucesso ao broker MQTT!");
-            MQTT.subscribe(TOPICO_SUBSCRIBE);
-        } else {
-            Serial.println("Falha ao reconectar no broker.");
-            Serial.println("Haverá nova tentativa de conexão em 2s");
-            delay(2000);
+- **initMQTT()**: Connects the ESP32 to the MQTT Broker and sets the callback to process incoming messages.
+    ```cpp
+    void initMQTT() {
+        MQTT.setServer(BROKER_MQTT, BROKER_PORT);
+        MQTT.setCallback(mqtt_callback);
+    }
+    ```
+
+- **setup()**: Runs once when the device is powered on or reset. In this function, you configure and initialize all necessary components and variables for the device to function.
+    ```cpp
+    void setup() {
+        dht.begin();
+        InitOutput();
+        initSerial();
+        initWiFi();
+        initMQTT();
+        delay(5000); 
+        MQTT.publish(TOPICO_PUBLISH_1, "s|on");
+    }
+    ```
+
+- **loop()**: Executes continuously as long as the device is running. This is where repeated operations and readings are handled, such as maintaining the connection, monitoring sensors, and sending data.
+    ```cpp
+    void loop() {
+        VerificaConexoesWiFIEMQTT();
+        EnviaEstadoOutputMQTT();
+        handleLuminosity();
+        handleTemperature();
+        handleHumidity();
+        MQTT.loop();
+    }
+    ```
+
+- **reconectWiFi()**: Checks and reconnects to Wi-Fi if disconnected.
+    ```cpp
+    void reconectWiFi() {
+        if (WiFi.status() == WL_CONNECTED) return;
+        WiFi.begin(SSID, PASSWORD);
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(100);
+            Serial.print(".");
+        }
+        Serial.println();
+        Serial.println("Successfully connected to network ");
+        Serial.print(SSID);
+        Serial.println("IP obtained: ");
+        Serial.println(WiFi.localIP());
+        digitalWrite(D4, LOW);
+    }
+    ```
+
+- **reconnectMQTT()**: Checks and reconnects to the MQTT Broker if the connection is lost.
+    ```cpp
+    void reconnectMQTT() {
+        while (!MQTT.connected()) {
+            Serial.print("* Attempting to connect to MQTT Broker: ");
+            Serial.println(BROKER_MQTT);
+            if (MQTT.connect(ID_MQTT)) {
+                Serial.println("Successfully connected to MQTT Broker!");
+                MQTT.subscribe(TOPICO_SUBSCRIBE);
+            } else {
+                Serial.println("Failed to reconnect to the broker.");
+                Serial.println("Retrying in 2s");
+                delay(2000);
+            }
         }
     }
-}
-```
+    ```
 
-•	  **mqtt_callback()**: Recebe e processa mensagens dos tópicos MQTT.
-```phyton
-void mqtt_callback(char* topic, byte* payload, unsigned int length) {
-    String msg;
-    for (int i = 0; i < length; i++) {
-        char c = (char)payload[i];
-        msg += c;
+- **mqtt_callback()**: Receives and processes MQTT topic messages.
+    ```cpp
+    void mqtt_callback(char* topic, byte* payload, unsigned int length) {
+        String msg;
+        for (int i = 0; i < length; i++) {
+            char c = (char)payload[i];
+            msg += c;
+        }
+        Serial.print("- Message received: ");
+        Serial.println(msg);
+
+        String onTopic = String(topicPrefix) + "@on|";
+        String offTopic = String(topicPrefix) + "@off|";
+
+        if (msg.equals(onTopic)) {
+            digitalWrite(D4, HIGH);
+            EstadoSaida = '1';
+        }
+
+        if (msg.equals(offTopic)) {
+            digitalWrite(D4, LOW);
+            EstadoSaida = '0';
+        }
     }
-    Serial.print("- Mensagem recebida: ");
-    Serial.println(msg);
+    ```
 
-    // Forma o padrão de tópico para comparação
-    String onTopic = String(topicPrefix) + "@on|";
-    String offTopic = String(topicPrefix) + "@off|";
+- **VerificaConexoesWiFIEMQTT()**: Monitors and reconnects Wi-Fi and MQTT Broker if needed.
+    ```cpp
+    void VerificaConexoesWiFIEMQTT() {
+        if (!MQTT.connected()) reconnectMQTT();
+        reconectWiFi();
+    }
+    ```
 
-    // Compara com o tópico recebido
-    if (msg.equals(onTopic)) {
+- **EnviaEstadoOutputMQTT()**: Sends the current LED state to the MQTT broker, allowing remote systems or devices to monitor whether the LED is on or off.
+    ```cpp
+    void EnviaEstadoOutputMQTT() {
+        if (EstadoSaida == '1') {
+            MQTT.publish(TOPICO_PUBLISH_1, "s|on");
+            Serial.println("- LED On");
+        }
+
+        if (EstadoSaida == '0') {
+            MQTT.publish(TOPICO_PUBLISH_1, "s|off");
+            Serial.println("- LED Off");
+        }
+        Serial.println("- LED state sent to broker!");
+        delay(1000);
+    }
+    ```
+
+- **InitOutput()**: Configures the LED pin and performs a "blink" sequence to indicate the device has been initialized.
+    ```cpp
+    void InitOutput() {
+        pinMode(D4, OUTPUT);
         digitalWrite(D4, HIGH);
-        EstadoSaida = '1';
-    }
+        boolean toggle = false;
 
-    if (msg.equals(offTopic)) {
-        digitalWrite(D4, LOW);
-        EstadoSaida = '0';
+        for (int i = 0; i <= 10; i++) {
+            toggle = !toggle;
+            digitalWrite(D4, toggle);
+            delay(200);
+        }
     }
-}
-```
+    ```
 
-•	**VerificaConexoesWiFIEMQTT()**: Monitora e reconecta o Wi-Fi e o Broker MQTT, se necessário.
-```phyton
-void VerificaConexoesWiFIEMQTT() {
-    if (!MQTT.connected())
-        reconnectMQTT();
-    reconectWiFi();
-}
-```
-
-•	**EnviaEstadoOutputMQTT()**: responsável por enviar o estado atual do LED para o broker MQTT, possibilitando que outros dispositivos ou sistemas monitorem remotamente se o LED está ligado ou desligado.  
-```phyton
-void EnviaEstadoOutputMQTT() {
-    if (EstadoSaida == '1') {
-        MQTT.publish(TOPICO_PUBLISH_1, "s|on");
-        Serial.println("- Led Ligado");
+- **handleLuminosity()**: Reads the luminosity value, calculates the average every 10 readings, and publishes the average value to an MQTT topic.
+    ```cpp
+    void handleLuminosity() {
+        const int potPin = 34;
+        int sensorValue = analogRead(potPin);
+        int luminosity = map(sensorValue, 1228, 4095, 0, 100);
+        somaLum += luminosity;
+        if(contador == 10){
+            Serial.print("Luminosity value: ");
+            float media = somaLum/10;
+            String mensagem = String(media);
+            Serial.println(mensagem.c_str());
+            MQTT.publish(TOPICO_PUBLISH_2, mensagem.c_str());
+            somaLum = 0;
+        }
     }
+    ```
 
-    if (EstadoSaida == '0') {
-        MQTT.publish(TOPICO_PUBLISH_1, "s|off");
-        Serial.println("- Led Desligado");
+- **handleTemperature()**: Reads the temperature from DHT11, calculates the average every 10 readings, and publishes the average value to an MQTT topic.
+    ```cpp
+    void handleTemperature() {
+        float temperature = dht.readTemperature();
+        somaTemp += temperature;
+        if(contador == 10){
+            Serial.print("Temperature value: ");
+            float media = somaTemp/10;
+            String mensagem = String(media);
+            Serial.println(mensagem.c_str());
+            MQTT.publish(TOPICO_PUBLISH_3, mensagem.c_str());
+            somaTemp = 0;
+        }
     }
-    Serial.println("- Estado do LED onboard enviado ao broker!");
-    delay(1000);
-}
-```
+    ```
 
-•	**InitOutput()**: responsável por configurar o pino do LED e realizar uma sequência de "pisca" para indicar que o dispositivo foi inicializado.
-```phyton
-void InitOutput() {
-    pinMode(D4, OUTPUT);
-    digitalWrite(D4, HIGH);
-    boolean toggle = false;
+- **handleHumidity()**: Reads humidity from DHT11, calculates the average every 10 readings, and publishes the average value to an MQTT topic.
+    ```cpp
+    void handleHumidity() {
+        float humidity = dht.readHumidity();
+        somaUmi += humidity;
+        if(contador == 10){
+            Serial.print("Humidity value: ");
+            float media = somaUmi/10;
+            String mensagem = String(media);
+            Serial.println(mensagem.c_str());
+            MQTT.publish(TOPICO_PUBLISH_4, mensagem.c_str());
+            somaUmi = 0;
+        }
+    }
+    ```
 
-    for (int i = 0; i <= 10; i++) {
-        toggle = !toggle;
-        digitalWrite(D4, toggle);
-        delay(200);
-    }
-}
-```
- 
-•	**handleLuminosity()**: Lê o valor de luminosidade, calcula a média a cada 10 leituras e publica o valor médio em um tópico MQTT. 
-O pino potPin (pino analógico 34) é onde o sensor de luminosidade está conectado e lê o valor analógico com analogRead(potPin). Usa a função map para ajustar o valor lido do sensor (sensorValue) para uma escala de 0 a 100. Esse mapeamento assume que o valor 1228 representa a luminosidade mínima e 4095 a máxima. Para o cálculo, soma-se 10 leituras de luminosidade em somaLum, em seguida, faz-se uma média deles, converte-a para String e publica no tópico MQTT (TOPICO_PUBLISH_2). A variável somaLum é então zerada para reiniciar a acumulação para a próxima média
-```phyton
-void handleLuminosity() {
-    const int potPin = 34;
-    int sensorValue = analogRead(potPin);
-    int luminosity = map(sensorValue, 1228, 4095, 0, 100);
-    somaLum += luminosity;
-    if(contador == 10){
-      Serial.print("Valor da luminosidade: ");
-      float media = somaLum/10;
-      String mensagem = String(media);
-      Serial.println(mensagem.c_str());
-      MQTT.publish(TOPICO_PUBLISH_2, mensagem.c_str());
-      somaLum = 0;
-    }
-}
-```
-
-•	  **handleTemperature()**: Lê a temperatura do DHT11, calcula a média a cada 10 leituras e publica o valor médio em um tópico MQTT. Usa dht.readTemperature() para ler a temperatura em Celsius do sensor DHT. Acumula os valores em somaTempo e quando o contador atinge 10 valores, calcula-se a média, publica no tópico MQTT (TOPICO_PUBLISH_3) e zera somaTemp.
-```phyton
-void handleTemperature() {
-    float temperature = dht.readTemperature();
-    somaTemp += temperature;
-    if(contador == 10){
-      Serial.print("Valor da temperatura: ");
-      float media = somaTemp/10;
-      String mensagem = String(media);
-      Serial.println(mensagem.c_str());
-      MQTT.publish(TOPICO_PUBLISH_3, mensagem.c_str());
-      somaTemp = 0;
-    }
-}
-```
-
-•	  **handleHumidity()**: Lê a umidade do DHT11, calcula a média a cada 10 leituras e publica o valor médio em um tópico MQTT. Usa dht.readHumidity() para ler a umidade relativa do ar. Acumula os valores em somaUmi, quando o contador atinge 10, calcula a média, publica no tópico MQTT (TOPICO_PUBLISH_4) e zera somaUmi.
-```phyton
-void handleHumidity() {
-  float humidity = dht.readHumidity();
-  somaUmi += humidity;
-    if(contador == 10){
-      Serial.print("Valor da umidade: ");
-      float media = somaUmi/10;
-      String mensagem = String(media);
-      Serial.println(mensagem.c_str());
-      MQTT.publish(TOPICO_PUBLISH_4, mensagem.c_str());
-      somaUmi = 0;
-    }
-}
-```
 ### Dashboard
-#### Recursos
-*   Atualização em Tempo Real: Os dados são atualizados a cada 10 segundos.<br>
-*   Monitoramento de Erros: A detecção de valores fora dos limites é exibida através de gráficos de barras e pizza.<br>
-*   Controle do Estado da Lâmpada: O estado da lâmpada muda para "on" ou "off" dependendo das condições do ambiente.<br>
-#### Dependências
-O código necessita das seguintes bibliotecas: dash, dash-bootstrap-components, plotly, requests, pytz e pandas. <br>
-Para instalá-las digite o comando:
-```phyton
+#### Resources
+*   **Real-Time Update:** Data is refreshed every 10 seconds.<br>
+*   **Error Monitoring:** Detection of out-of-range values is displayed through bar and pie charts.<br>
+*   **Lamp State Control:** The lamp state switches to "on" or "off" based on ambient conditions.<br>
+
+#### Dependencies
+The code requires the following libraries: dash, dash-bootstrap-components, plotly, requests, pytz, and pandas.<br>
+To install, type the command:
+```python
 pip install dash dash-bootstrap-components plotly requests pytz pandas
 ```
-### Parâmetros de Rede
-```phyton
-IP_ADDRESS = "4.228.64.5" 
+    
+### Network Parameters
+```python
+IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 ```
-#### Limite de Dados
-Quando os valores estão fora destes intervalos, ocorrerá um trigger, ou seja, um sinal. Observe que existe um valor máximo e um mínimo.
-```phyton
-triggerMinLum = 0 
-triggerMaxLum = 30 
-triggerMinTemp = 15 
-triggerMaxTemp = 25 
-triggerMinUmi = 30 
+
+#### Data Limits
+When values fall outside of these ranges, a trigger (signal) will occur. Note that there is a maximum and minimum value.
+
+```python
+triggerMinLum = 0
+triggerMaxLum = 30
+triggerMinTemp = 15
+triggerMaxTemp = 25
+triggerMinUmi = 30
 triggerMaxUmi = 50
 ```
-#### Funções de Aquisição e Processamento de Dados
-•	get_data(lastN, dataType): Obtém dados do servidor para um tipo específico de dado (luminosity, temperature, ou humidity), consultando os últimos valores com base no parâmetro lastN.<br>
-•	turn_light():Ativa ou desativa a lâmpada dependendo do estado dos sensores. Se qualquer um dos sensores indicar valores fora do limite, a lâmpada é ligada; caso contrário, permanece desligada.<br>
-•	convert_to_sao_paulo_time(timestamps): Converte carimbos de data/hora do formato UTC para o fuso horário de São Paulo.<br>
-#### Layout do Painel e Armazenamento de Dados
-O layout é definido com html.Div e dcc.Graph para cada gráfico (luminosidade, temperatura, umidade). Armazenamos os dados em dcc.Store, permitindo o acesso em callbacks.
-#### Callbacks e Atualização de Gráficos
-•	Atualização de Dados: O callback update_data_store atualiza as variáveis de luminosidade, temperatura e umidade a cada 10 segundos. Verifica também se os valores estão dentro do limite e ajusta o estado de erro para cada variável.<br>
-•	Gráficos de Linha: O callback update_graph atualiza os gráficos de linha para mostrar os dados recentes dos sensores.<br>
-•	Gráficos de Barras e Pizza: updateErroGraph e UpdatePieGraph exibem a distribuição de valores dentro e fora dos limites.<br>
-#### Funções de Atualização
-•	generic_update_data_store: Armazena dados para o tipo especificado (luminosidade, temperatura, umidade) e atualiza o estado da variável.<br>
-•	generic_update_graph: Configura e estiliza os gráficos de linha.<br>
-•	generic_updateErroGraph: Cria gráficos de barra para visualizar quantidades dentro e fora dos limites.<br>
-•	generic_UpdatePieGraph: Exibe um gráfico de pizza para ilustrar a proporção de valores dentro e fora dos limites.<br>
-Essas funções são generalizadas para lidar com os três tipos de dados e permitem adicionar novos tipos de sensores com facilidade.<br>
-## Manual do Usuário
-Primeiro é necessário ter o equipamento ligado por uma pessoa da equipe TermoLight. Depois é necessário ter uma conexão de internet wi-fi, de 2,4GHz (necessários ser o mesmo wi-fi cadastrado pelo membro da equipe). 
-O equipamento TermoLight instalado possui dois sensores que captam luminosidade, temperatura e umidade de um ambiente, e transferidos instantaneamente para nuvem através de um ESP32 (conector wi-fi). Destes, um sensor de luminosidade LDR, conectado a um resistor de 10kOhms, e um sensor de temperatura e umidade DHT11. 
-1.	Abrir o arquivo PYTHON disponibilizado junto com os sensores, e executar no Visual Studio; 
-2.	Abrir um navegador web (de sua preferência), após isso usar a barra de pesquisa e pesquisar “LOCALHOST:8050”, para abrir a API que carregará os dashboards dos sensores; 
-3.	Neste ponto abrirá uma página web com os dashboards carregados, mostrando valores atuais captados pelos sensores, e valores anteriores que podem ser analisados. 
 
-## Bibliografia
-CABRINI, Fabio. fiware. GitHub, n.d. Disponível em: https://github.com/fabiocabrini/fiware. Acesso em: 16 out. 2024.<br>
-CodeMagic LTD. Bem vindo ao Wokwi! Disponível em: https://docs.wokwi.com/pt-BR/. Acesso em: 2 out. 2024. <br>
+#### Data Acquisition and Processing Functions
+•	get_data(lastN, dataType): Fetches data from the server for a specific data type (luminosity, temperature, or humidity), retrieving the most recent values based on the lastN parameter.<br>
+•	turn_light(): Activates or deactivates the light depending on sensor states. If any sensor shows values outside the limit, the light is turned on; otherwise, it remains off.<br>
+•	convert_to_sao_paulo_time(timestamps): Converts timestamps from UTC format to São Paulo time zone.<br>
+#### Dashboard Layout and Data Storage
+The layout is defined with html.Div and dcc.Graph for each chart (luminosity, temperature, humidity). Data is stored in dcc.Store, allowing access in callbacks.
+#### Callbacks and Graph Updates
+•	Data Update: The callback update_data_store updates luminosity, temperature, and humidity variables every 10 seconds. It also checks if values are within limits and adjusts the error state for each variable.<br>
+•	Line Graphs: The callback update_graph updates line graphs to show recent sensor data.<br>
+•	Bar and Pie Charts: updateErroGraph and UpdatePieGraph display the distribution of values within and outside of limits.<br>
+#### Update Functions
+•	generic_update_data_store: Stores data for the specified type (luminosity, temperature, humidity) and updates the variable's state.<br>
+•	generic_update_graph: Configures and styles line graphs.<br>
+•	generic_updateErroGraph: Creates bar charts to visualize quantities within and outside limits.<br>
+•	generic_UpdatePieGraph: Displays a pie chart illustrating the proportion of values within and outside of limits.<br>
+These functions are generalized to handle the three data types, allowing easy addition of new sensor types.<br>
+## User Manual
+First, the equipment must be powered on by a TermoLight team member. Then, a 2.4GHz Wi-Fi internet connection is required (it must be the same Wi-Fi registered by the team member). 
+The installed TermoLight device has two sensors that capture ambient luminosity, temperature, and humidity, instantly transferred to the cloud through an ESP32 (Wi-Fi connector). These include an LDR light sensor connected to a 10kOhm resistor and a DHT11 temperature and humidity sensor. 
+1.	Open the provided PYTHON file along with the sensors, and run it in Visual Studio;
+2.	Open a web browser (of your choice), then use the search bar to enter “LOCALHOST:8050” to access the API that will load the sensor dashboards;
+3.	A webpage with loaded dashboards will appear, showing current values captured by the sensors, along with previous values for analysis.
+
+## References
+CABRINI, Fabio. fiware. GitHub, n.d. Available at: https://github.com/fabiocabrini/fiware. Accessed on: Oct 16, 2024.<br>
+CodeMagic LTD. Welcome to Wokwi! Available at: https://docs.wokwi.com/en/. Accessed on: Oct 2, 2024.<br>
 DATASHEET DHT11: https://www.mouser.com/datasheet/2/758/DHT11-Technical-Data-Sheet-Translated-Version-1143054.pdf <br>
-ESPRESSIF. ESP32 PDF. 2019. Disponível em: https://www.alldatasheet.com/datasheet-pdf/view/1148023/ESPRESSIF/ESP32.html. Acesso em: 24 set. 2024. <br>
-FAHIM, M., EL MHOUTI, A., BOUDAA, T. et al. Modeling and implementation of a low-cost IoT-smart weather monitoring station and air quality assessment based on fuzzy inference model and MQTT protocol. Model. Earth Syst. Environ. 9, 4085–4102 (2023). Disponível em: https://doi.org/10.1007/s40808-023-01701-w. Acesso em: 02 out. 2024. <br>
-HOLANDA, MARIA ANDRADE LUCENA. Desenvolvimento do firmware para guiagem navegação e controle da plataforma LAICAnSta. p. 33, Brasília, Dez. 2016. <br>
-MCROBERTS, Michael. Arduino Básico; [tradução Rafael Zanolli]. – São Paulo: Novatec Editora, 2011. <br>
+ESPRESSIF. ESP32 PDF. 2019. Available at: https://www.alldatasheet.com/datasheet-pdf/view/1148023/ESPRESSIF/ESP32.html. Accessed on: Sept 24, 2024.<br>
+FAHIM, M., EL MHOUTI, A., BOUDAA, T. et al. Modeling and implementation of a low-cost IoT-smart weather monitoring station and air quality assessment based on fuzzy inference model and MQTT protocol. Model. Earth Syst. Environ. 9, 4085–4102 (2023). Available at: https://doi.org/10.1007/s40808-023-01701-w. Accessed on: Oct 2, 2024.<br>
+HOLANDA, MARIA ANDRADE LUCENA. Development of firmware for LAICAnSta platform guidance navigation and control. p. 33, Brasília, Dec. 2016.<br>
+MCROBERTS, Michael. Arduino Basics; [translation Rafael Zanolli]. – São Paulo: Novatec Editora, 2011.<br>
 OHM, Georg Simon. Die galvanische Kette, mathematisch bearbeitet. 1827.<br>
-SOUZA, F. O que é firmware? Disponível em: https://embarcados.com.br/o-que-e-firmware/. Acesso em: 28 set. 2024. <br>
+SOUZA, F. What is firmware? Available at: https://embarcados.com.br/o-que-e-firmware/. Accessed on: Sept 28, 2024.<br>
 Wokwi: [https://wokwi.com/projects/413299514799878145](https://wokwi.com/projects/412095412172389377)<br>
-
