@@ -42,6 +42,7 @@ Obtido através do Wokwi, a plataforma oferece uma interface visual para adicion
 ### FIWARE
 O FIWARE é uma plataforma aberta que oferece ferramentas e APIs para desenvolver soluções inteligentes, facilitando a interoperabilidade entre sistemas, dispositivos IoT e aplicações. Seu principal componente, o Orion Context Broker, gerencia dados contextuais em tempo real, permitindo que dispositivos compartilhem informações, neste caso, temperatura, umidade e luminosidade, promovendo decisões automatizadas. A implantação dos componentes, conhecidos como Generic Enablers, é feita com Docker, o que facilita a escalabilidade e a portabilidade dos módulos. APIs RESTful garantem a comunicação entre os sistemas, enquanto o broker MQTT integra dados do ESP32 à plataforma FIWARE para processamento e análise em tempo real. 
 #### Diagrama (arquitetura em camadas) de aplicação 
+![Diagrama (arquitetura em camadas)](./images/diagramaFiware.png)</div>
  
 ### Dependências
 Este projeto requer as seguintes bibliotecas para funcionar:<br>
