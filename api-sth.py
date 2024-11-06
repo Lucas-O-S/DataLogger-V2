@@ -15,7 +15,7 @@ import json
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
 DASH_HOST = "0.0.0.0"  # Set this to "0.0.0.0" to allow access from any IP
-lamp = "08x"
+lamp = "07x"
 
 # variaveis
 triggerMinLum = 0
@@ -42,9 +42,10 @@ valorDentroLimiteUmi = 0
 ErroLuz = False
 ErroTemp = False
 ErroUmi = False
+iniciado = False
 
 # Set lastN value
-lastN = 1  # Get 10 most recent points at each interval
+lastN = 5  # Get 10 most recent points at each interval
  
 
  #################################################################################
@@ -60,7 +61,6 @@ def get_data(lastN,dataType):
         'fiware-service': 'smart',
         'fiware-servicepath': '/'
     }
-    lastN = 1
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
@@ -241,6 +241,7 @@ def update_data_store(n, luminosity_data, temperature_data, humidity_data):
             ErroUmi = False
             valorDentroLimiteUmi += 1
     turn_light()
+    
     return luminosity_data, temperature_data, humidity_data
 
 
@@ -309,7 +310,7 @@ def UpdatePieGraph(n):
 
 def generic_update_data_store(n, stored_data, dataType):
     # Get luminosity data
-    data = get_data(lastN, dataType)
+    data = get_data(n, dataType)
 
     if data:
         # Extract values and timestamps
@@ -419,4 +420,4 @@ def generic_UpdatePieGraph(valores):
 ###########################################################################################################################
 # Run server
 if __name__ == '__main__':
-    app.run_server(debug=True, host=DASH_HOST, port=8040)
+    app.run_server(debug=True, host=DASH_HOST, port=8050)
