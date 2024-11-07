@@ -1,8 +1,8 @@
-# Temperature, Humidity, and Luminosity Monitoring
+# Temperature, Humidity, and Luminosity Monitoring: Termonline
 
 ![TermoLight Logo](./images/termolight.png)
 
-The project enables the monitoring of temperature, humidity, and light levels in an environment using an ESP32, MQTT communication to send real-time data, and storage of data in MongoDB and SQL. This repository contains the necessary code to connect to a Wi-Fi network and send data to an MQTT Broker, as well as to receive commands to turn an LED on and off when certain parameters fall outside the ideal range. The data is initially received by MongoDB, then sent and stored in SQL. It also implements a dashboard for visualizing data such as light, temperature, and humidity collected by an ESP32. It uses Dash to create a web interface that displays real-time graphs, with data obtained from an API and shown in line, bar, and pie charts.
+The project enables the monitoring of temperature, humidity, and light levels in an environment using an ESP32, MQTT communication to send real-time data, and storage of data in MongoDB. This repository contains the necessary code to connect to a Wi-Fi network and send data to an MQTT Broker, as well as to receive commands to turn an LED on and off when certain parameters fall outside the ideal range. It also implements a dashboard for visualizing data such as light, temperature, and humidity collected by an ESP32. It uses Dash to create a web interface that displays real-time graphs, with data obtained from an API and shown in line, bar, and pie charts.
 
 The project works with the following variables in their respective ranges and triggers:
 
@@ -29,9 +29,7 @@ The project works with the following variables in their respective ranges and tr
 
 | Component  | Connection                                                   |
 |------------|--------------------------------------------------------------|
-| DHT11      | Data pin (DHT11) - Pin 15 (ESP32)                             |
-|            | VCC (DHT11)                                                   |
-|            | GND (DHT11)                                                   |
+| DHT11      | Data pin (DHT11) - Pin 15 (ESP32) <br> VCC (DHT11) <br> GND (DHT11)                                                   |
 | LDR        | Output pin (LDR) – Pin 34 (ESP32)                             |
 
 ### Electrical Diagram
@@ -339,7 +337,7 @@ To install, type the command:
 pip install dash dash-bootstrap-components plotly requests pytz pandas
 ```
     
-### Network Parameters
+#### Network Parameters
 ```python
 IP_ADDRESS = "4.228.64.5"
 PORT_STH = 8666
@@ -373,6 +371,11 @@ The layout is defined with html.Div and dcc.Graph for each chart (luminosity, te
 •	generic_updateErroGraph: Creates bar charts to visualize quantities within and outside limits.<br>
 •	generic_UpdatePieGraph: Displays a pie chart illustrating the proportion of values within and outside of limits.<br>
 These functions are generalized to handle the three data types, allowing easy addition of new sensor types.<br>
+
+## Youtube
+Video pitch of Termonline: https://youtu.be/QfXlTfQ_lCk?si=MqdozVUPol8iKkov
+<br>
+
 ## User Manual
 First, the equipment must be powered on by a TermoLight team member. Then, a 2.4GHz Wi-Fi internet connection is required (it must be the same Wi-Fi registered by the team member). 
 The installed TermoLight device has two sensors that capture ambient luminosity, temperature, and humidity, instantly transferred to the cloud through an ESP32 (Wi-Fi connector). These include an LDR light sensor connected to a 10kOhm resistor and a DHT11 temperature and humidity sensor. 
