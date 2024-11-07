@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2b8fe16c-071f-41ed-9862-5c1f82db7667",
+		"_postman_id": "c5f75e5f-0da4-4c06-9efd-3244d4961a0a",
 		"name": "FIWARE Descomplicado",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "38938705"
@@ -169,7 +169,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"devices\": [\n    {\n      \"device_id\": \"lamp{{lamp}}\",         // Identificador único do dispositivo\n      \"entity_name\": \"urn:ngsi-ld:Lamp:{{lamp}}\",   // Nome da entidade para o dispositivo (formato URN)\n      \"entity_type\": \"Lamp\",          // Tipo da entidade (neste caso, \"Lamp\")\n      \"protocol\": \"PDI-IoTA-UltraLight\",  // Protocolo usado para a comunicação (no exemplo, PDI-IoTA-UltraLight)\n      \"transport\": \"MQTT\",            // Método de transporte (neste caso, MQTT)\n\n      // Lista de comandos que o dispositivo pode receber\n      \"commands\": [\n        { \"name\": \"on\", \"type\": \"command\" },  // Comando para ligar\n        { \"name\": \"off\", \"type\": \"command\" }  // Comando para desligar\n      ],\n\n      // Lista de atributos associados ao dispositivo\n      \"attributes\": [\n        { \"object_id\": \"s\", \"name\": \"state\", \"type\": \"Text\" }, // Atributo de estado (Texto)\n        { \"object_id\": \"l\", \"name\": \"luminosity\", \"type\": \"Integer\" },  // Atributo de luminosidade (Inteiro)\n        { \"object_id\": \"t\", \"name\": \"temperature\", \"type\": \"Float\" }, // Atributo de temperatura (float)\n        { \"object_id\": \"h\", \"name\": \"humidity\", \"type\": \"Float\" }  // Atributo de Humidade (float)\n\n      ]\n    }\n  ]\n}\n"
+							"raw": "{\n  \"devices\": [\n    {\n      \"device_id\": \"lamp{{lamp}}\",         // Identificador único do dispositivo\n      \"entity_name\": \"urn:ngsi-ld:Lamp:{{lamp}}\",   // Nome da entidade para o dispositivo (formato URN)\n      \"entity_type\": \"Lamp\",          // Tipo da entidade (neste caso, \"Lamp\")\n      \"protocol\": \"PDI-IoTA-UltraLight\",  // Protocolo usado para a comunicação (no exemplo, PDI-IoTA-UltraLight)\n      \"transport\": \"MQTT\",            // Método de transporte (neste caso, MQTT)\n\n      // Lista de comandos que o dispositivo pode receber\n      \"commands\": [\n        { \"name\": \"on\", \"type\": \"command\" },  // Comando para ligar\n        { \"name\": \"off\", \"type\": \"command\" }  // Comando para desligar\n      ],\n\n      // Lista de atributos associados ao dispositivo\n      \"attributes\": [\n        { \"object_id\": \"s\", \"name\": \"state\", \"type\": \"Text\" }, // Atributo de estado (Texto)\n        { \"object_id\": \"l\", \"name\": \"luminosity\", \"type\": \"Integer\" },\n        { \"object_id\": \"t\", \"name\": \"temperature\", \"type\": \"float\"},\n        { \"object_id\": \"h\", \"name\": \"humidity\", \"type\": \"float\"}  // Atributo de luminosidade (Inteiro)\n      ]\n    }\n  ]\n}\n"
 						},
 						"url": {
 							"raw": "http://{{url}}:4041/iot/devices",
@@ -209,7 +209,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"description\": \"Lamp Commands\", // Descrição do serviço de notificação\n  \"dataProvided\": {\n    \"entities\": [\n      {\n        \"id\": \"urn:ngsi-ld:Lamp:05x\", \"type\": \"Lamp\" // Definição da entidade a ser monitorada\n      }\n    ],\n    \"attrs\": [\"on\", \"off\"] // Atributos a serem monitorados (no caso, 'on' e 'off')\n  },\n  \"provider\": {\n    \"http\": { \"url\": \"http://{{url}}:4041\" }, // URL do serviço a ser notificado\n    \"legacyForwarding\": true // Indicação para encaminhar notificações de forma legada (se aplicável)\n  }\n}\n"
+							"raw": "{\n  \"description\": \"Lamp Commands\", // Descrição do serviço de notificação\n  \"dataProvided\": {\n    \"entities\": [\n      {\n        \"id\": \"urn:ngsi-ld:Lamp:{{lamp}}\", \"type\": \"Lamp\" // Definição da entidade a ser monitorada\n      }\n    ],\n    \"attrs\": [\"on\", \"off\"] // Atributos a serem monitorados (no caso, 'on' e 'off')\n  },\n  \"provider\": {\n    \"http\": { \"url\": \"http://{{url}}:4041\" }, // URL do serviço a ser notificado\n    \"legacyForwarding\": true // Indicação para encaminhar notificações de forma legada (se aplicável)\n  }\n}\n"
 						},
 						"url": {
 							"raw": "http://{{url}}:1026/v2/registrations",
@@ -283,7 +283,7 @@
 							"raw": "{\n  \"on\": {\n      \"type\" : \"command\",\n      \"value\" : \"\"\n  }\n}"
 						},
 						"url": {
-							"raw": "http://{{url}}:1026/v2/entities/urn:ngsi-ld:Lamp:05x/attrs/",
+							"raw": "http://{{url}}:1026/v2/entities/urn:ngsi-ld:Lamp:{{lamp}}/attrs/",
 							"protocol": "http",
 							"host": [
 								"{{url}}"
@@ -292,7 +292,7 @@
 							"path": [
 								"v2",
 								"entities",
-								"urn:ngsi-ld:Lamp:05x",
+								"urn:ngsi-ld:Lamp:{{lamp}}",
 								"attrs",
 								""
 							]
@@ -788,7 +788,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://{{url}}:8666/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{{lamp}}/attributes/temperature?lastN=10",
+							"raw": "http://{{url}}:8666/STH/v1/contextEntities/type/Lamp/id/urn:ngsi-ld:Lamp:{{lamp}}/attributes/humidity?lastN=10",
 							"protocol": "http",
 							"host": [
 								"{{url}}"
@@ -803,7 +803,7 @@
 								"id",
 								"urn:ngsi-ld:Lamp:{{lamp}}",
 								"attributes",
-								"temperature"
+								"humidity"
 							],
 							"query": [
 								{
